@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JLPT N3 Vocabulary Quiz - नेपाली</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+        h1 { color: #333; font-size: 28px; text-align: center; margin-bottom: 10px; }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        .stat { text-align: center; }
+        .stat-label { font-size: 12px; color: #999; text-transform: uppercase; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #667eea; }
+        .quiz-card { background: #f9f9f9; padding: 25px; border-radius: 10px; margin-bottom: 25px; }
+        .japanese-word { text-align: center; margin-bottom: 20px; }
+        .kanji { font-size: 48px; font-weight: bold; color: #333; margin-bottom: 5px; }
+        .kana { font-size: 24px; color: #666; margin-bottom: 10px; }
+        .romaji { font-size: 16px; color: #999; font-style: italic; }
+        .options { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
+        .option {
+            padding: 15px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .option:hover { border-color: #667eea; background: #f0f4ff; }
+        .option.correct { border-color: #27ae60; background: #d4edda; }
+        .option.incorrect { border-color: #e74c3c; background: #f8d7da; }
+        .feedback { padding: 15px; border-radius: 8px; margin: 20px 0; display: none; }
+        .feedback.show { display: block; }
+        .feedback-correct { background: #d4edda; color: #155724; }
+        .feedback-incorrect { background: #f8d7da; color: #721c24; }
+        button {
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover { background: #5568d3; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JLPT N3 शब्दावली प्रश्नोत्तरी</h1>
+        <div class="stats">
+            <div class="stat"><div class="stat-label">प्रश्न</div><div class="stat-value"><span id="current">1</span>/5</div></div>
+            <div class="stat"><div class="stat-label">सही</div><div class="stat-value" id="correct">0</div></div>
+            <div class="stat"><div class="stat-label">स्कोर</div><div class="stat-value" id="score">0%</div></div>
+        </div>
+        <div class="quiz-card">
+            <div class="japanese-word">
+                <div class="kanji" id="kanji"></div>
+                <div class="kana" id="kana"></div>
+                <div class="romaji" id="romaji"></div>
+            </div>
+        </div>
+        <div class="options" id="options"></div>
+        <div class="feedback" id="feedback"></div>
+        <button id="nextBtn" onclick="nextQuestion()">अर्को प्रश्न</button>
+    </div>
+    <script>
+        const vocab = [
+            { kanji: "社会", kana: "しゃかい", romaji: "shakai", nepali: "समाज", english: "society", distractors: ["परिवार", "सरकार", "व्यापार"] },
+            { kanji: "経験", kana: "けいけん", romaji: "keiken", nepali: "अनुभव", english: "experience", distractors: ["ज्ञान", "सीप", "शिक्षा"] },
+            { kanji: "確認", kana: "かくにん", romaji: "kakunin", nepali: "पुष्टि गर्नु", english: "confirm", distractors: ["जाँच गर्नु", "सोध्नु", "सम्झनु"] },
+            { kanji: "対象", kana: "たいしょう", romaji: "taishō", nepali: "लक्ष्य", english: "target", distractors: ["उद्देश्य", "साधन", "परिणाम"] },
+            { kanji: "重要", kana: "じゅうよう", romaji: "jūyō", nepali: "महत्त्वपूर्ण", english: "important", distractors: ["आवश्यक", "जरुरी", "साधारण"] }
+        ];
+        let currentQ = 0;
+        let correctCount = 0;
+        let answered = false;
+
+        function showQuestion() {
+            const q = vocab[currentQ];
+            document.getElementById('kanji').textContent = q.kanji;
+            document.getElementById('kana').textContent = q.kana;
+            document.getElementById('romaji').textContent = q.romaji;
+            
+            const options = [q.nepali, ...q.distractors].sort(() => Math.random() - 0.5);
+            document.getElementById('options').innerHTML = options.map(opt => 
+                `<div class="option" onclick="checkAnswer('${opt}', '${q.nepali}')">${opt}</div>`
+            ).join('');
+            
+            document.getElementById('current').textContent = currentQ + 1;
+            document.getElementById('feedback').classList.remove('show');
+            answered = false;
+        }
+
+        function checkAnswer(selected, correct) {
+            if (answered) return;
+            answered = true;
+            const isCorrect = selected === correct;
+            if (isCorrect) correctCount++;
+            
+            document.querySelectorAll('.option').forEach(opt => {
+                if (opt.textContent === correct) opt.classList.add('correct');
+                if (opt.textContent === selected && !isCorrect) opt.classList.add('incorrect');
+            });
+            
+            document.getElementById('feedback').className = `feedback show feedback-${isCorrect ? 'correct' : 'incorrect'}`;
+            document.getElementById('feedback').textContent = isCorrect ? '✓ सही!' : `✗ गलत। सही उत्तर: ${correct}`;
+            document.getElementById('correct').textContent = correctCount;
+            document.getElementById('score').textContent = Math.round((correctCount / (currentQ + 1)) * 100) + '%';
+        }
+
+        function nextQuestion() {
+            if (!answered) { alert('कृपया एउटा उत्तर छान्नुहोस्!'); return; }
+            currentQ++;
+            if (currentQ < vocab.length) {
+                showQuestion();
+            } else {
+                document.querySelector('.container').innerHTML = `
+                    <h1>परीक्षा पूरा भयो!</h1>
+                    <div style="text-align:center;margin:50px 0">
+                        <div style="font-size:64px;font-weight:bold;color:#667eea">${Math.round((correctCount/vocab.length)*100)}%</div>
+                        <p style="font-size:24px;margin-top:20px">तपाईंले ${vocab.length} मध्ये ${correctCount} सही गर्नुभयो।</p>
+                        <button onclick="location.reload()" style="margin-top:30px">फेरि प्रयास गर्नुहोस्</button>
+                    </div>`;
+            }
+        }
+        showQuestion();
+    </script>
+</body>
+</html>
