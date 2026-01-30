@@ -1,0 +1,33 @@
+{
+  "name": "jlpt-n3-vocabulary-quiz",
+  "version": "1.0.0",
+  "description": "JLPT N3 Japanese Vocabulary Quiz for Nepali Speakers",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server -p 8080",
+    "deploy": "gh-pages -d ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LearnFromSiran/jlpt-n3-vocabulary-quiz.git"
+  },
+  "keywords": [
+    "JLPT",
+    "N3",
+    "Japanese",
+    "Nepali",
+    "vocabulary",
+    "quiz",
+    "language-learning"
+  ],
+  "author": "LearnFromSiran",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/LearnFromSiran/jlpt-n3-vocabulary-quiz/issues"
+  },
+  "homepage": "https://learnfromsiran.github.io/jlpt-n3-vocabulary-quiz/",
+  "devDependencies": {
+    "gh-pages": "^6.1.0",
+    "http-server": "^14.1.1"
+  }
+}
