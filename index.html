@@ -171,6 +171,7 @@
     }
 
     .select-field,
+    .search-field,
     .ghost-button,
     .primary-button {
       min-height: 44px;
@@ -185,9 +186,16 @@
 
     .ghost-button:hover,
     .select-field:hover,
+    .search-field:hover,
+    .search-field:focus,
     .primary-button:hover {
       transform: translateY(-2px);
       box-shadow: 0 12px 24px rgba(30, 41, 59, 0.13);
+    }
+
+    .search-field {
+      width: min(100%, 260px);
+      outline: none;
     }
 
     .primary-button {
@@ -311,6 +319,36 @@
       font-weight: 950;
     }
 
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .quick-card {
+      min-height: 96px;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.76);
+      box-shadow: 0 12px 26px rgba(30, 41, 59, 0.1);
+    }
+
+    .quick-label {
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 950;
+      text-transform: uppercase;
+    }
+
+    .quick-value {
+      margin-top: 9px;
+      font-size: 1.45rem;
+      font-weight: 950;
+      color: var(--lavender);
+    }
+
     .quiz-panel {
       min-height: 548px;
       background: rgba(255, 255, 255, 0.95);
@@ -329,6 +367,13 @@
       margin: 0;
       font-size: 1rem;
       font-weight: 950;
+    }
+
+    .panel-subtitle {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 750;
     }
 
     .progress-text {
@@ -641,6 +686,13 @@
       margin-bottom: 4px;
     }
 
+    .empty-state {
+      padding: 18px;
+      color: var(--muted);
+      font-weight: 800;
+      text-align: center;
+    }
+
     .hidden {
       display: none !important;
     }
@@ -786,6 +838,7 @@
       }
 
       .select-field,
+      .search-field,
       .ghost-button,
       .primary-button {
         width: 100%;
@@ -804,6 +857,7 @@
       }
 
       .study-strip,
+      .quick-actions,
       .stats-list {
         grid-template-columns: 1fr;
       }
@@ -830,6 +884,10 @@
           <p class="brand-subtitle">Canva-style study board for Nepali speakers</p>
         </div>
         <div class="toolbar">
+          <select class="select-field" id="quizMode" aria-label="Quiz mode">
+            <option value="meaning">Japanese to Nepali</option>
+            <option value="japanese">Nepali to Japanese</option>
+          </select>
           <select class="select-field" id="questionCount" aria-label="Question count">
             <option value="10">10 questions</option>
             <option value="15">15 questions</option>
@@ -866,13 +924,24 @@
               <div class="study-value">Mistake list</div>
             </div>
           </div>
+          <div class="quick-actions" aria-label="Personal progress">
+            <div class="quick-card">
+              <div class="quick-label">Best Score</div>
+              <div class="quick-value" id="bestScore">0%</div>
+            </div>
+            <div class="quick-card">
+              <div class="quick-label">Study Streak</div>
+              <div class="quick-value" id="studyStreak">0 days</div>
+            </div>
+          </div>
         </div>
 
         <section class="quiz-panel" aria-live="polite">
           <div id="quizView">
             <div class="panel-head">
               <div>
-                <p class="panel-title">Choose the correct Nepali meaning</p>
+                <p class="panel-title" id="panelTitle">Choose the correct Nepali meaning</p>
+                <p class="panel-subtitle" id="panelSubtitle">Read the Japanese word, then choose the Nepali answer.</p>
               </div>
               <div class="progress-text"><span id="currentNumber">1</span>/<span id="totalNumber">10</span></div>
             </div>
@@ -902,7 +971,10 @@
             <p class="prompt-label">Round complete</p>
             <div class="result-score" id="resultScore">0%</div>
             <p class="result-message" id="resultMessage"></p>
-            <button class="primary-button" id="practiceAgainBtn" type="button">Practice Again</button>
+            <div class="actions">
+              <button class="ghost-button" id="mistakesBtn" type="button">Practice Mistakes</button>
+              <button class="primary-button" id="practiceAgainBtn" type="button">Practice Again</button>
+            </div>
             <div class="review-list" id="reviewList"></div>
           </div>
         </section>
@@ -936,7 +1008,7 @@
         <div class="word-bank">
           <div class="section-head">
             <h2>Vocabulary Bank</h2>
-            <span class="progress-text">N3 essentials</span>
+            <input class="search-field" id="wordSearch" type="search" placeholder="Search kanji, kana, Nepali..." aria-label="Search vocabulary">
           </div>
           <div class="word-list" id="wordList"></div>
         </div>
@@ -984,20 +1056,25 @@
       correct: 0,
       answered: false,
       selectedAnswer: "",
-      mistakes: []
+      mistakes: [],
+      lastMistakes: []
     };
 
     const elements = {
+      quizMode: document.getElementById("quizMode"),
       questionCount: document.getElementById("questionCount"),
       shuffleBtn: document.getElementById("shuffleBtn"),
       restartBtn: document.getElementById("restartBtn"),
       practiceAgainBtn: document.getElementById("practiceAgainBtn"),
+      mistakesBtn: document.getElementById("mistakesBtn"),
       revealBtn: document.getElementById("revealBtn"),
       nextBtn: document.getElementById("nextBtn"),
       quizView: document.getElementById("quizView"),
       resultsView: document.getElementById("resultsView"),
       currentNumber: document.getElementById("currentNumber"),
       totalNumber: document.getElementById("totalNumber"),
+      panelTitle: document.getElementById("panelTitle"),
+      panelSubtitle: document.getElementById("panelSubtitle"),
       progressFill: document.getElementById("progressFill"),
       wordCard: document.getElementById("wordCard"),
       kanji: document.getElementById("kanji"),
@@ -1013,7 +1090,16 @@
       resultScore: document.getElementById("resultScore"),
       resultMessage: document.getElementById("resultMessage"),
       reviewList: document.getElementById("reviewList"),
+      bestScore: document.getElementById("bestScore"),
+      studyStreak: document.getElementById("studyStreak"),
+      wordSearch: document.getElementById("wordSearch"),
       wordList: document.getElementById("wordList")
+    };
+
+    const storageKeys = {
+      bestScore: "jlptN3BestScore",
+      streak: "jlptN3StudyStreak",
+      lastStudyDate: "jlptN3LastStudyDate"
     };
 
     function shuffle(items) {
@@ -1030,10 +1116,12 @@
     }
 
     function buildOptions(question) {
-      const wrongAnswers = shuffle(vocabulary.filter((item) => item.nepali !== question.nepali))
+      const mode = elements.quizMode.value;
+      const answerKey = mode === "meaning" ? "nepali" : "kanji";
+      const wrongAnswers = shuffle(vocabulary.filter((item) => item[answerKey] !== question[answerKey]))
         .slice(0, 3)
-        .map((item) => item.nepali);
-      return shuffle([question.nepali, ...wrongAnswers]);
+        .map((item) => item[answerKey]);
+      return shuffle([question[answerKey], ...wrongAnswers]);
     }
 
     function animateWordCard() {
@@ -1042,8 +1130,36 @@
       elements.wordCard.classList.add("is-changing");
     }
 
-    function startQuiz() {
-      state.questions = shuffle(vocabulary).slice(0, getQuestionLimit());
+    function getTodayKey() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function updateStudyStreak() {
+      const today = getTodayKey();
+      const lastDate = localStorage.getItem(storageKeys.lastStudyDate);
+      let streak = Number(localStorage.getItem(storageKeys.streak) || "0");
+
+      if (lastDate !== today) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayKey = yesterday.toISOString().slice(0, 10);
+        streak = lastDate === yesterdayKey ? streak + 1 : 1;
+        localStorage.setItem(storageKeys.streak, String(streak));
+        localStorage.setItem(storageKeys.lastStudyDate, today);
+      }
+
+      renderSavedProgress();
+    }
+
+    function renderSavedProgress() {
+      const bestScore = Number(localStorage.getItem(storageKeys.bestScore) || "0");
+      const streak = Number(localStorage.getItem(storageKeys.streak) || "0");
+      elements.bestScore.textContent = `${bestScore}%`;
+      elements.studyStreak.textContent = `${streak} ${streak === 1 ? "day" : "days"}`;
+    }
+
+    function startQuiz(customQuestions = null) {
+      state.questions = customQuestions ? shuffle(customQuestions) : shuffle(vocabulary).slice(0, getQuestionLimit());
       state.currentIndex = 0;
       state.correct = 0;
       state.answered = false;
@@ -1057,16 +1173,25 @@
 
     function renderQuestion() {
       const question = state.questions[state.currentIndex];
+      const mode = elements.quizMode.value;
       state.answered = false;
       state.selectedAnswer = "";
 
       elements.currentNumber.textContent = String(state.currentIndex + 1);
       elements.totalNumber.textContent = String(state.questions.length);
       elements.progressFill.style.width = `${(state.currentIndex / state.questions.length) * 100}%`;
-      elements.kanji.textContent = question.kanji;
-      elements.kana.textContent = question.kana;
-      elements.romaji.textContent = question.romaji;
-      elements.supportText.textContent = `English meaning: ${question.english}`;
+      elements.panelTitle.textContent = mode === "meaning"
+        ? "Choose the correct Nepali meaning"
+        : "Choose the correct Japanese word";
+      elements.panelSubtitle.textContent = mode === "meaning"
+        ? "Read the Japanese word, then choose the Nepali answer."
+        : "Read the Nepali meaning, then choose the Japanese answer.";
+      elements.kanji.textContent = mode === "meaning" ? question.kanji : question.nepali;
+      elements.kana.textContent = mode === "meaning" ? question.kana : question.english;
+      elements.romaji.textContent = mode === "meaning" ? question.romaji : "Choose the matching Japanese";
+      elements.supportText.textContent = mode === "meaning"
+        ? `English meaning: ${question.english}`
+        : `Hint: ${question.kana} | ${question.romaji}`;
       elements.feedback.className = "feedback";
       elements.feedback.textContent = "";
       elements.nextBtn.textContent = state.currentIndex === state.questions.length - 1 ? "Finish" : "Next";
@@ -1088,7 +1213,9 @@
       if (state.answered) return;
 
       const question = state.questions[state.currentIndex];
-      const isCorrect = selected === question.nepali;
+      const mode = elements.quizMode.value;
+      const correctAnswer = mode === "meaning" ? question.nepali : question.kanji;
+      const isCorrect = selected === correctAnswer;
       state.answered = true;
       state.selectedAnswer = selected;
 
@@ -1098,11 +1225,11 @@
         state.mistakes.push({ ...question, selected });
       }
 
-      updateOptionStyles(question.nepali, selected);
+      updateOptionStyles(correctAnswer, selected);
       elements.feedback.className = `feedback show ${isCorrect ? "correct" : "incorrect"}`;
       elements.feedback.textContent = isCorrect
         ? `Correct. ${question.kanji} means ${question.nepali}.`
-        : `Not quite. ${question.kanji} means ${question.nepali}.`;
+        : `Not quite. The answer is ${correctAnswer}. ${question.kanji} means ${question.nepali}.`;
 
       renderStats();
     }
@@ -1110,10 +1237,12 @@
     function revealAnswer() {
       if (state.answered) return;
       const question = state.questions[state.currentIndex];
+      const mode = elements.quizMode.value;
+      const correctAnswer = mode === "meaning" ? question.nepali : question.kanji;
       state.answered = true;
       state.selectedAnswer = "";
       state.mistakes.push({ ...question, selected: "Revealed" });
-      updateOptionStyles(question.nepali, "");
+      updateOptionStyles(correctAnswer, "");
       elements.feedback.className = "feedback show incorrect";
       elements.feedback.textContent = `${question.kanji} means ${question.nepali}.`;
       renderStats();
@@ -1156,11 +1285,19 @@
 
     function showResults() {
       const score = Math.round((state.correct / state.questions.length) * 100);
+      const bestScore = Number(localStorage.getItem(storageKeys.bestScore) || "0");
+      if (score > bestScore) {
+        localStorage.setItem(storageKeys.bestScore, String(score));
+      }
+      state.lastMistakes = [...state.mistakes];
+      updateStudyStreak();
       elements.progressFill.style.width = "100%";
       elements.quizView.classList.add("hidden");
       elements.resultsView.classList.add("show");
       elements.resultScore.textContent = `${score}%`;
       elements.resultMessage.textContent = getResultMessage(score);
+      elements.mistakesBtn.disabled = state.lastMistakes.length === 0;
+      elements.mistakesBtn.textContent = state.lastMistakes.length === 0 ? "No Mistakes" : `Practice ${state.lastMistakes.length} Mistakes`;
       renderReview();
     }
 
@@ -1193,9 +1330,28 @@
       });
     }
 
+    function practiceMistakes() {
+      if (state.lastMistakes.length === 0) return;
+      startQuiz(state.lastMistakes);
+    }
+
     function renderWordBank() {
+      const searchTerm = elements.wordSearch.value.trim().toLowerCase();
+      const filteredWords = vocabulary.filter((item) => {
+        const text = `${item.kanji} ${item.kana} ${item.romaji} ${item.english} ${item.nepali}`.toLowerCase();
+        return text.includes(searchTerm);
+      });
+
       elements.wordList.replaceChildren();
-      vocabulary.forEach((item) => {
+      if (filteredWords.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.textContent = "No matching words found.";
+        elements.wordList.append(empty);
+        return;
+      }
+
+      filteredWords.forEach((item) => {
         const row = document.createElement("div");
         row.className = "word-row";
         row.innerHTML = `
@@ -1212,11 +1368,15 @@
 
     elements.nextBtn.addEventListener("click", goNext);
     elements.revealBtn.addEventListener("click", revealAnswer);
-    elements.restartBtn.addEventListener("click", startQuiz);
-    elements.shuffleBtn.addEventListener("click", startQuiz);
-    elements.practiceAgainBtn.addEventListener("click", startQuiz);
-    elements.questionCount.addEventListener("change", startQuiz);
+    elements.restartBtn.addEventListener("click", () => startQuiz());
+    elements.shuffleBtn.addEventListener("click", () => startQuiz());
+    elements.practiceAgainBtn.addEventListener("click", () => startQuiz());
+    elements.mistakesBtn.addEventListener("click", practiceMistakes);
+    elements.questionCount.addEventListener("change", () => startQuiz());
+    elements.quizMode.addEventListener("change", () => startQuiz());
+    elements.wordSearch.addEventListener("input", renderWordBank);
 
+    renderSavedProgress();
     renderWordBank();
     startQuiz();
   </script>

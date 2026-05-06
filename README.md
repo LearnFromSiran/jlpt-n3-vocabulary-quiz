@@ -1,22 +1,22 @@
 # JLPT N3 Vocabulary Quiz
 
-A responsive JLPT N3 vocabulary practice app for Nepali-speaking Japanese learners. The app is built as a static HTML/CSS/JavaScript project, so it is simple to host on GitHub Pages, Netlify, Vercel, Firebase Hosting, or any static web server.
+A responsive JLPT N3 vocabulary practice app for Nepali-speaking Japanese learners. The app is a static HTML/CSS/JavaScript project, so it is easy to host on GitHub Pages, Netlify, Vercel, Firebase Hosting, or any static web server.
 
 ## Features
 
 - 30 curated JLPT N3 vocabulary words
 - Kanji, kana, romaji, English meaning, and Nepali translation support
 - 10, 15, or 30 question practice rounds
-- Shuffled multiple-choice answers
-- Instant feedback after every answer
+- Two quiz directions: Japanese to Nepali and Nepali to Japanese
+- Shuffled multiple-choice answers with instant feedback
 - Reveal-answer option for study mode
+- Mistakes-only practice after each round
+- Searchable vocabulary bank
 - Session progress, accuracy, and remaining question counters
-- Final score with a mistake review list
-- Responsive professional layout for mobile and desktop
+- Saved best score and daily study streak in the browser
+- Canva-style responsive interface with animations
 
 ## Live Demo
-
-GitHub Pages URL:
 
 ```text
 https://learnfromsiran.github.io/jlpt-n3-vocabulary-quiz/
