@@ -119,11 +119,11 @@ function correctAnswerFor(word) {
 function promptFor(word) {
   return {
     main: word.kanji,
-    kana: word.kana,
-    meta: "Choose the meaning",
+    kana: "",
+    meta: "",
     hint: isMockTest()
       ? "Mock test: answer before moving on."
-      : `Reading: ${word.kana}`,
+      : "Choose the correct meaning.",
   };
 }
 
@@ -178,6 +178,8 @@ function renderQuestion() {
   elements.kanji.textContent = prompt.main;
   elements.kana.textContent = prompt.kana;
   elements.romaji.textContent = prompt.meta;
+  elements.kana.classList.toggle("hidden", !prompt.kana);
+  elements.romaji.classList.toggle("hidden", !prompt.meta);
   elements.supportText.textContent = prompt.hint;
   elements.feedback.className = "feedback";
   elements.feedback.textContent = "";
