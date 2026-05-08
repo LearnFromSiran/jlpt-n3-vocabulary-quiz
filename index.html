@@ -8,9 +8,9 @@
     />
     <meta
       name="description"
-      content="Clean offline JLPT N3 vocabulary practice and mock test app."
+      content="Offline JLPT N3 kanji-to-meaning practice and mock test app."
     />
-    <meta name="theme-color" content="#111827" />
+    <meta name="theme-color" content="#1d4ed8" />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="stylesheet" href="styles.css" />
     <title>JLPT N3 Vocabulary Test</title>
@@ -21,72 +21,24 @@
         <div class="brand">
           <div class="brand-mark" aria-hidden="true">N3</div>
           <div>
-            <p class="kicker">JLPT Vocabulary</p>
-            <h1>N3 Practice & Mock Test</h1>
+            <p class="kicker">JLPT vocabulary</p>
+            <h1>Kanji to Meaning Test</h1>
           </div>
         </div>
-        <div class="header-meta">
+        <div class="status-row">
           <span id="offlineStatus">Offline ready</span>
           <span><strong id="totalWords">430</strong> words</span>
         </div>
       </header>
 
-      <section class="summary-grid" aria-label="Saved progress">
-        <div class="summary-card">
-          <span>Best score</span>
-          <strong id="bestScore">0%</strong>
-        </div>
-        <div class="summary-card">
-          <span>Study streak</span>
-          <strong><span id="studyStreak">0</span> days</strong>
-        </div>
-        <div class="summary-card">
-          <span>Current mode</span>
-          <strong id="modeLabel">Practice</strong>
-        </div>
-      </section>
-
-      <section class="controls" aria-label="Test setup">
-        <label>
-          Test type
-          <select id="testType">
-            <option value="practice">Practice</option>
-            <option value="mock">Mock test</option>
-          </select>
-        </label>
-        <label>
-          Questions
-          <select id="questionCount">
-            <option value="10">10 questions</option>
-            <option value="20">20 questions</option>
-            <option value="30">30 questions</option>
-            <option value="50">50 questions</option>
-          </select>
-        </label>
-        <label>
-          Focus
-          <select id="focusMode">
-            <option value="all">All words</option>
-            <option value="favorites">Saved words</option>
-            <option value="mistakes">Mistakes</option>
-          </select>
-        </label>
-        <button class="button secondary" id="shuffleBtn" type="button">
-          Shuffle
-        </button>
-        <button class="button primary" id="newQuizBtn" type="button">
-          Start
-        </button>
-      </section>
-
-      <section class="workspace">
+      <section class="study-layout">
         <article class="quiz-panel" aria-live="polite">
           <div id="quizView">
-            <div class="panel-header">
+            <div class="quiz-top">
               <div>
                 <p class="kicker" id="panelTitle">Choose the meaning</p>
                 <p id="panelSubtitle">
-                  Read the word and select the best answer.
+                  Study mode gives instant feedback and answer reveal.
                 </p>
               </div>
               <strong class="counter"
@@ -95,6 +47,7 @@
                 ></strong
               >
             </div>
+
             <div class="progress-track" aria-hidden="true">
               <div id="progressFill"></div>
             </div>
@@ -108,14 +61,18 @@
               >
                 Save
               </button>
+              <p class="question-label">Kanji</p>
               <div class="word-main" id="kanji">N3</div>
               <div class="word-reading" id="kana">Vocabulary</div>
               <div class="word-meta" id="romaji">reading</div>
             </section>
 
-            <p class="hint-line" id="supportText">Choose the best answer.</p>
+            <p class="hint-line" id="supportText">
+              Choose the correct meaning.
+            </p>
             <div class="options" id="options"></div>
             <div class="feedback" id="feedback"></div>
+
             <div class="actions">
               <button class="button secondary" id="revealBtn" type="button">
                 Reveal
@@ -146,14 +103,73 @@
           </div>
         </article>
 
-        <aside class="stats-panel" aria-label="Session stats">
-          <h2>Session</h2>
-          <div class="stats-list">
-            <div><span id="correctCount">0</span><small>Correct</small></div>
-            <div><span id="accuracy">0%</span><small>Accuracy</small></div>
-            <div><span id="answeredCount">0</span><small>Answered</small></div>
-            <div><span id="remainingCount">10</span><small>Left</small></div>
-          </div>
+        <aside class="study-panel">
+          <section class="setup-card" aria-label="Test setup">
+            <div class="section-title">
+              <p class="kicker">Setup</p>
+              <h2>Test options</h2>
+            </div>
+            <label>
+              Test type
+              <select id="testType">
+                <option value="practice">Practice</option>
+                <option value="mock">Mock test</option>
+              </select>
+            </label>
+            <label>
+              Questions
+              <select id="questionCount">
+                <option value="10">10 questions</option>
+                <option value="20">20 questions</option>
+                <option value="30">30 questions</option>
+                <option value="50">50 questions</option>
+              </select>
+            </label>
+            <label>
+              Focus
+              <select id="focusMode">
+                <option value="all">All words</option>
+                <option value="favorites">Saved words</option>
+                <option value="mistakes">Mistakes</option>
+              </select>
+            </label>
+            <div class="setup-actions">
+              <button class="button secondary" id="shuffleBtn" type="button">
+                Shuffle
+              </button>
+              <button class="button primary" id="newQuizBtn" type="button">
+                Start
+              </button>
+            </div>
+          </section>
+
+          <section
+            class="progress-card"
+            aria-label="Saved and session progress"
+          >
+            <div class="section-title">
+              <p class="kicker">Progress</p>
+              <h2>Today</h2>
+            </div>
+            <div class="metric-grid">
+              <div><span>Best</span><strong id="bestScore">0%</strong></div>
+              <div>
+                <span>Streak</span
+                ><strong><span id="studyStreak">0</span>d</strong>
+              </div>
+              <div>
+                <span>Mode</span><strong id="modeLabel">Practice</strong>
+              </div>
+              <div>
+                <span>Correct</span><strong id="correctCount">0</strong>
+              </div>
+              <div><span>Accuracy</span><strong id="accuracy">0%</strong></div>
+              <div>
+                <span>Left</span><strong id="remainingCount">10</strong>
+              </div>
+            </div>
+            <span class="sr-only" id="answeredCount">0</span>
+          </section>
         </aside>
       </section>
 
@@ -166,7 +182,7 @@
           <input
             id="wordSearch"
             type="search"
-            placeholder="Kanji, kana, or meaning"
+            placeholder="Search kanji, kana, meaning"
             aria-label="Search vocabulary"
           />
         </div>

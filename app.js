@@ -411,7 +411,7 @@ function renderWordBank() {
 
   elements.wordList.replaceChildren();
   elements.wordPageInfo.textContent = rows.length
-    ? `Page ${state.wordPage} of ${totalPages} · ${rows.length} words`
+    ? `Page ${state.wordPage} of ${totalPages} - ${rows.length} words`
     : "No words found";
   elements.prevWordPage.disabled = state.wordPage <= 1;
   elements.nextWordPage.disabled = state.wordPage >= totalPages;

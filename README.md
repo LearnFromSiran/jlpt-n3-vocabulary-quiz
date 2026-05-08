@@ -1,6 +1,6 @@
 # JLPT N3 Vocabulary Test
 
-A clean, mobile-friendly JLPT N3 vocabulary practice and mock test app. It is a static offline-ready PWA, so it runs on GitHub Pages with no backend or build step.
+A mobile-first JLPT N3 kanji-to-meaning practice and mock test app. It is a static offline-ready PWA, so it runs on GitHub Pages with no backend or build step.
 
 ## Features
 
@@ -10,6 +10,7 @@ A clean, mobile-friendly JLPT N3 vocabulary practice and mock test app. It is a 
 - Japanese-to-meaning question flow
 - Saved words and mistake review stored in the browser
 - Best score and daily streak tracking
+- Mobile-first quiz layout with compact setup and progress panels
 - Searchable vocabulary bank
 - Vocabulary bank pagination with 12 words per page
 - Offline support after the first visit
