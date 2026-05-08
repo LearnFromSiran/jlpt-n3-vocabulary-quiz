@@ -1,19 +1,17 @@
-# JLPT N3 Vocabulary Pro
+# JLPT N3 Vocabulary Test
 
-A professional, mobile-friendly JLPT N3 vocabulary quiz that works offline after the first visit. It is built as a static PWA, so it can run on GitHub Pages without a backend or build step.
+A clean, mobile-friendly JLPT N3 vocabulary practice and mock test app. It is a static offline-ready PWA, so it runs on GitHub Pages with no backend or build step.
 
 ## Features
 
 - 430 bundled JLPT N3 vocabulary entries
-- Offline-first service worker and installable web app manifest
-- Mobile-first quiz layout with large tap targets
-- Japanese to meaning, meaning to Japanese, and kanji to kana quiz modes
-- 10, 20, 30, or 50 question rounds
-- Saved best score and daily streak in the browser
-- Starred words for personal review
-- Mistake review mode saved locally
+- Practice mode with instant feedback and reveal answer
+- Mock test mode with 50 exam-style questions
+- Japanese to meaning, meaning to Japanese, and kanji to kana question types
+- Saved words and mistake review stored in the browser
+- Best score and daily streak tracking
 - Searchable vocabulary bank
-- No internet required after the app is cached
+- Offline support after the first visit
 
 ## Live Demo
 
@@ -23,15 +21,8 @@ https://learnfromsiran.github.io/jlpt-n3-vocabulary-quiz/
 
 ## Local Development
 
-Install dependencies:
-
 ```bash
 npm install
-```
-
-Start a local static server:
-
-```bash
 npm start
 ```
 
@@ -58,16 +49,7 @@ jlpt-n3-vocabulary-quiz/
 
 ## Deployment
 
-This repository includes a GitHub Actions workflow for GitHub Pages.
-
-1. Push changes to the `main` branch.
-2. In GitHub, open `Settings` > `Pages`.
-3. Set the source to `GitHub Actions`.
-4. The workflow deploys the static files automatically.
-
-## Vocabulary Notes
-
-The bundled word bank is stored in `vocabulary.js` so the quiz can run offline. The initial N3 word data was adapted from public JLPT study listings and kept local for fast mobile review.
+Push to `main`. The included GitHub Actions workflow deploys the static app to GitHub Pages.
 
 ## License
 

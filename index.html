@@ -8,89 +8,106 @@
     />
     <meta
       name="description"
-      content="Offline-ready JLPT N3 vocabulary quiz with Japanese, kana, English, and Nepali-friendly study flows."
+      content="Clean offline JLPT N3 vocabulary practice and mock test app."
     />
-    <meta name="theme-color" content="#0f766e" />
+    <meta name="theme-color" content="#111827" />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="stylesheet" href="styles.css" />
-    <title>JLPT N3 Vocabulary Pro</title>
+    <title>JLPT N3 Vocabulary Test</title>
   </head>
   <body>
     <main class="app-shell">
-      <header class="hero">
-        <nav class="topbar" aria-label="App controls">
-          <div class="brand-lockup">
-            <div class="brand-mark" aria-hidden="true">N3</div>
-            <div>
-              <p class="eyebrow">Offline study app</p>
-              <h1>JLPT N3 Vocabulary Pro</h1>
-            </div>
+      <header class="app-header">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">N3</div>
+          <div>
+            <p class="kicker">JLPT Vocabulary</p>
+            <h1>N3 Practice & Mock Test</h1>
           </div>
-          <div class="status-pill" id="offlineStatus">Offline ready</div>
-        </nav>
-        <section class="study-focus" aria-label="Current quiz">
-          <div class="study-copy">
-            <p class="eyebrow">Built for daily review</p>
-            <h2>
-              Practice words, remember mistakes, and keep moving on mobile.
-            </h2>
-            <p>
-              The app keeps your score, streak, saved words, and missed cards on
-              this device. Install it from the browser menu and study even
-              without internet.
-            </p>
-          </div>
-          <div class="hero-stats" aria-label="Study summary">
-            <div><span id="totalWords">430</span><small>Words</small></div>
-            <div><span id="bestScore">0%</span><small>Best</small></div>
-            <div><span id="studyStreak">0</span><small>Day streak</small></div>
-          </div>
-        </section>
+        </div>
+        <div class="header-meta">
+          <span id="offlineStatus">Offline ready</span>
+          <span><strong id="totalWords">430</strong> words</span>
+        </div>
       </header>
-      <section class="control-panel" aria-label="Quiz setup">
-        <label
-          >Mode<select id="quizMode">
+
+      <section class="summary-grid" aria-label="Saved progress">
+        <div class="summary-card">
+          <span>Best score</span>
+          <strong id="bestScore">0%</strong>
+        </div>
+        <div class="summary-card">
+          <span>Study streak</span>
+          <strong><span id="studyStreak">0</span> days</strong>
+        </div>
+        <div class="summary-card">
+          <span>Current mode</span>
+          <strong id="modeLabel">Practice</strong>
+        </div>
+      </section>
+
+      <section class="controls" aria-label="Test setup">
+        <label>
+          Test type
+          <select id="testType">
+            <option value="practice">Practice</option>
+            <option value="mock">Mock test</option>
+          </select>
+        </label>
+        <label>
+          Question type
+          <select id="quizMode">
             <option value="meaning">Japanese to meaning</option>
             <option value="japanese">Meaning to Japanese</option>
             <option value="kana">Kanji to reading</option>
-          </select></label
-        >
-        <label
-          >Set<select id="questionCount">
+          </select>
+        </label>
+        <label>
+          Questions
+          <select id="questionCount">
             <option value="10">10 questions</option>
             <option value="20">20 questions</option>
             <option value="30">30 questions</option>
             <option value="50">50 questions</option>
-          </select></label
-        >
-        <label
-          >Focus<select id="focusMode">
-            <option value="all">All vocabulary</option>
+          </select>
+        </label>
+        <label>
+          Focus
+          <select id="focusMode">
+            <option value="all">All words</option>
             <option value="favorites">Saved words</option>
-            <option value="mistakes">Mistake review</option>
-          </select></label
-        >
-        <button class="secondary" id="shuffleBtn" type="button">Shuffle</button
-        ><button class="primary" id="newQuizBtn" type="button">Start</button>
+            <option value="mistakes">Mistakes</option>
+          </select>
+        </label>
+        <button class="button secondary" id="shuffleBtn" type="button">
+          Shuffle
+        </button>
+        <button class="button primary" id="newQuizBtn" type="button">
+          Start
+        </button>
       </section>
-      <section class="main-grid">
-        <article class="quiz-card" aria-live="polite">
+
+      <section class="workspace">
+        <article class="quiz-panel" aria-live="polite">
           <div id="quizView">
-            <div class="quiz-head">
+            <div class="panel-header">
               <div>
-                <p class="eyebrow" id="panelTitle">Choose the meaning</p>
+                <p class="kicker" id="panelTitle">Choose the meaning</p>
                 <p id="panelSubtitle">
-                  Read the Japanese word and pick the best answer.
+                  Read the word and select the best answer.
                 </p>
               </div>
-              <strong
+              <strong class="counter"
                 ><span id="currentNumber">1</span>/<span id="totalNumber"
                   >10</span
                 ></strong
               >
             </div>
-            <div class="progress-track"><div id="progressFill"></div></div>
-            <div class="word-card" id="wordCard">
+            <div class="progress-track" aria-hidden="true">
+              <div id="progressFill"></div>
+            </div>
+
+            <section class="question-card">
               <button
                 class="save-button"
                 id="favoriteBtn"
@@ -102,67 +119,69 @@
               <div class="word-main" id="kanji">N3</div>
               <div class="word-reading" id="kana">Vocabulary</div>
               <div class="word-meta" id="romaji">reading</div>
-            </div>
-            <p class="hint-line" id="supportText">confirmation, check</p>
+            </section>
+
+            <p class="hint-line" id="supportText">Choose the best answer.</p>
             <div class="options" id="options"></div>
             <div class="feedback" id="feedback"></div>
             <div class="actions">
-              <button class="secondary" id="revealBtn" type="button">
-                Reveal</button
-              ><button class="primary" id="nextBtn" type="button">Next</button>
+              <button class="button secondary" id="revealBtn" type="button">
+                Reveal
+              </button>
+              <button class="button primary" id="nextBtn" type="button">
+                Next
+              </button>
             </div>
           </div>
+
           <div class="results" id="resultsView">
-            <p class="eyebrow">Round complete</p>
+            <p class="kicker">Result</p>
             <div class="result-score" id="resultScore">0%</div>
             <p id="resultMessage"></p>
             <div class="actions">
-              <button class="secondary" id="mistakesBtn" type="button">
-                Practice mistakes</button
-              ><button class="primary" id="practiceAgainBtn" type="button">
-                New round
+              <button class="button secondary" id="mistakesBtn" type="button">
+                Review mistakes
+              </button>
+              <button
+                class="button primary"
+                id="practiceAgainBtn"
+                type="button"
+              >
+                New set
               </button>
             </div>
             <div class="review-list" id="reviewList"></div>
           </div>
         </article>
-        <aside class="side-panel">
-          <section class="stats-card" aria-label="Session stats">
-            <h3>Session</h3>
-            <div class="stats-list">
-              <div><span id="correctCount">0</span><small>Correct</small></div>
-              <div><span id="accuracy">0%</span><small>Accuracy</small></div>
-              <div>
-                <span id="answeredCount">0</span><small>Answered</small>
-              </div>
-              <div><span id="remainingCount">10</span><small>Left</small></div>
-            </div>
-          </section>
-          <section class="tips-card">
-            <h3>Smart review</h3>
-            <p>
-              Save hard words with the star, then choose Saved Words in Focus.
-              Missed words are stored automatically for fast review.
-            </p>
-          </section>
+
+        <aside class="stats-panel" aria-label="Session stats">
+          <h2>Session</h2>
+          <div class="stats-list">
+            <div><span id="correctCount">0</span><small>Correct</small></div>
+            <div><span id="accuracy">0%</span><small>Accuracy</small></div>
+            <div><span id="answeredCount">0</span><small>Answered</small></div>
+            <div><span id="remainingCount">10</span><small>Left</small></div>
+          </div>
         </aside>
       </section>
+
       <section class="word-bank" aria-label="Vocabulary bank">
-        <div class="section-head">
+        <div class="word-bank-header">
           <div>
-            <p class="eyebrow">Word bank</p>
-            <h2>Search all bundled vocabulary</h2>
+            <p class="kicker">Vocabulary bank</p>
+            <h2>Search words</h2>
           </div>
           <input
             id="wordSearch"
             type="search"
-            placeholder="Search kanji, kana, meaning..."
+            placeholder="Kanji, kana, or meaning"
             aria-label="Search vocabulary"
           />
         </div>
         <div class="word-list" id="wordList"></div>
       </section>
     </main>
+
     <script src="vocabulary.js"></script>
     <script src="app.js"></script>
   </body>

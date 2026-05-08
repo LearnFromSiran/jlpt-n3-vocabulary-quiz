@@ -5,7 +5,9 @@ const state = {
   answered: false,
   mistakes: [],
   lastMistakes: [],
+  selectedAnswer: "",
 };
+
 const storageKeys = {
   best: "n3ProBest",
   streak: "n3ProStreak",
@@ -13,12 +15,15 @@ const storageKeys = {
   favorites: "n3ProFavorites",
   mistakes: "n3ProMistakes",
 };
+
 const $ = (id) => document.getElementById(id);
 const elements = [
   "offlineStatus",
   "totalWords",
   "bestScore",
   "studyStreak",
+  "modeLabel",
+  "testType",
   "quizMode",
   "questionCount",
   "focusMode",
@@ -31,7 +36,6 @@ const elements = [
   "currentNumber",
   "totalNumber",
   "progressFill",
-  "wordCard",
   "favoriteBtn",
   "kanji",
   "kana",
@@ -52,197 +56,261 @@ const elements = [
   "reviewList",
   "wordSearch",
   "wordList",
-].reduce((a, id) => ((a[id] = $(id)), a), {});
-function readJson(k, f) {
+].reduce((acc, id) => {
+  acc[id] = $(id);
+  return acc;
+}, {});
+
+function readJson(key, fallback) {
   try {
-    return JSON.parse(localStorage.getItem(k)) || f;
+    return JSON.parse(localStorage.getItem(key)) || fallback;
   } catch {
-    return f;
+    return fallback;
   }
 }
-function writeJson(k, v) {
-  localStorage.setItem(k, JSON.stringify(v));
+
+function writeJson(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
 }
+
 function shuffle(items) {
-  const c = [...items];
-  for (let i = c.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [c[i], c[j]] = [c[j], c[i]];
+  const copy = [...items];
+  for (let index = copy.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
   }
-  return c;
+  return copy;
 }
+
 function favorites() {
   return readJson(storageKeys.favorites, []);
 }
+
 function mistakeIds() {
   return readJson(storageKeys.mistakes, []);
 }
-function pool() {
-  const f = elements.focusMode.value;
-  if (f === "favorites")
-    return vocabulary.filter((w) => favorites().includes(w.id));
-  if (f === "mistakes")
-    return vocabulary.filter((w) => mistakeIds().includes(w.id));
+
+function isMockTest() {
+  return elements.testType.value === "mock";
+}
+
+function activePool() {
+  const focus = elements.focusMode.value;
+  if (focus === "favorites") {
+    return vocabulary.filter((word) => favorites().includes(word.id));
+  }
+  if (focus === "mistakes") {
+    return vocabulary.filter((word) => mistakeIds().includes(word.id));
+  }
   return vocabulary;
 }
-function displayMeaning(w) {
-  return (w.nepali ? w.nepali + " - " : "") + w.english;
+
+function displayMeaning(word) {
+  return word.english;
 }
-function answerFor(w) {
-  const m = elements.quizMode.value;
-  if (m === "meaning") return displayMeaning(w);
-  if (m === "kana") return w.kana;
-  return w.kanji;
+
+function correctAnswerFor(word) {
+  const mode = elements.quizMode.value;
+  if (mode === "meaning") return displayMeaning(word);
+  if (mode === "kana") return word.kana;
+  return word.kanji;
 }
-function promptFor(w) {
-  const m = elements.quizMode.value;
-  if (m === "meaning" || m === "kana")
+
+function promptFor(word) {
+  const mode = elements.quizMode.value;
+  if (mode === "meaning" || mode === "kana") {
     return {
-      main: w.kanji,
-      kana: w.kana,
-      meta: w.kana,
-      hint: m === "kana" ? w.english : "Reading: " + w.kana,
+      main: word.kanji,
+      kana: word.kana,
+      meta: mode === "kana" ? "Choose the reading" : "Choose the meaning",
+      hint: isMockTest()
+        ? "Mock test: answer before moving on."
+        : `Reading: ${word.kana}`,
     };
+  }
   return {
-    main: displayMeaning(w),
-    kana: w.english,
-    meta: "Choose the Japanese word",
-    hint: "Reading appears after answer",
+    main: displayMeaning(word),
+    kana: "Choose the Japanese word",
+    meta: "Meaning to Japanese",
+    hint: isMockTest()
+      ? "Mock test: no hints after selection."
+      : "Select the matching Japanese word.",
   };
 }
-function startQuiz(custom) {
-  const selected = custom || pool();
-  const source = selected.length ? selected : vocabulary;
-  const limit = Math.min(Number(elements.questionCount.value), source.length);
-  state.questions = shuffle(source).slice(0, limit);
+
+function questionLimit() {
+  if (isMockTest())
+    return Math.min(50, activePool().length || vocabulary.length);
+  return Math.min(
+    Number(elements.questionCount.value),
+    activePool().length || vocabulary.length,
+  );
+}
+
+function startQuiz(customQuestions = null) {
+  const selectedPool = customQuestions || activePool();
+  const source = selectedPool.length ? selectedPool : vocabulary;
+  state.questions = shuffle(source).slice(0, questionLimit());
   state.currentIndex = 0;
   state.correct = 0;
   state.answered = false;
   state.mistakes = [];
+  state.selectedAnswer = "";
   elements.quizView.classList.remove("hidden");
   elements.resultsView.classList.remove("show");
+  renderModeState();
   renderQuestion();
   renderStats();
 }
+
+function renderModeState() {
+  const mock = isMockTest();
+  elements.modeLabel.textContent = mock ? "Mock test" : "Practice";
+  elements.questionCount.disabled = mock;
+  elements.revealBtn.classList.toggle("hidden", mock);
+}
+
 function renderQuestion() {
-  const q = state.questions[state.currentIndex];
+  const question = state.questions[state.currentIndex];
   state.answered = false;
-  const m = elements.quizMode.value;
-  elements.panelTitle.textContent =
-    m === "meaning"
+  state.selectedAnswer = "";
+
+  const mode = elements.quizMode.value;
+  elements.panelTitle.textContent = isMockTest()
+    ? "Mock test question"
+    : mode === "meaning"
       ? "Choose the meaning"
-      : m === "kana"
+      : mode === "kana"
         ? "Choose the reading"
         : "Choose the Japanese word";
-  elements.panelSubtitle.textContent =
-    m === "meaning"
-      ? "Read the Japanese and pick the best meaning."
-      : m === "kana"
-        ? "Match the kanji to its kana reading."
-        : "Read the meaning and pick the Japanese word.";
+  elements.panelSubtitle.textContent = isMockTest()
+    ? "Select one answer. Corrections are shown after the test."
+    : "Study mode gives instant feedback and answer reveal.";
   elements.currentNumber.textContent = state.currentIndex + 1;
   elements.totalNumber.textContent = state.questions.length;
-  elements.progressFill.style.width =
-    (state.currentIndex / state.questions.length) * 100 + "%";
-  const p = promptFor(q);
-  elements.kanji.textContent = p.main;
-  elements.kana.textContent = p.kana;
-  elements.romaji.textContent = p.meta;
-  elements.supportText.textContent = p.hint;
+  elements.progressFill.style.width = `${(state.currentIndex / state.questions.length) * 100}%`;
+
+  const prompt = promptFor(question);
+  elements.kanji.textContent = prompt.main;
+  elements.kana.textContent = prompt.kana;
+  elements.romaji.textContent = prompt.meta;
+  elements.supportText.textContent = prompt.hint;
   elements.feedback.className = "feedback";
   elements.feedback.textContent = "";
   elements.nextBtn.textContent =
     state.currentIndex === state.questions.length - 1 ? "Finish" : "Next";
-  renderFavorite(q);
+  renderFavorite(question);
+
   elements.options.replaceChildren();
-  buildOptions(q).forEach((option) => {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "option";
-    b.textContent = option;
-    b.addEventListener("click", () => answerQuestion(option));
-    elements.options.append(b);
+  buildOptions(question).forEach((option) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "option";
+    button.textContent = option;
+    button.addEventListener("click", () => answerQuestion(option));
+    elements.options.append(button);
   });
 }
-function buildOptions(q) {
-  const correct = answerFor(q);
-  const wrong = shuffle(vocabulary.filter((w) => answerFor(w) !== correct))
+
+function buildOptions(question) {
+  const correct = correctAnswerFor(question);
+  const wrongAnswers = shuffle(
+    vocabulary.filter((word) => correctAnswerFor(word) !== correct),
+  )
     .slice(0, 3)
-    .map(answerFor);
-  return shuffle([correct, ...wrong]);
+    .map(correctAnswerFor);
+  return shuffle([correct, ...wrongAnswers]);
 }
+
 function answerQuestion(selected) {
   if (state.answered) return;
-  const q = state.questions[state.currentIndex];
-  const correct = answerFor(q);
-  const ok = selected === correct;
+
+  const question = state.questions[state.currentIndex];
+  const correct = correctAnswerFor(question);
+  const isCorrect = selected === correct;
   state.answered = true;
-  if (ok) state.correct++;
-  else recordMistake(q);
-  [...elements.options.children].forEach((btn) => {
-    btn.disabled = true;
-    if (btn.textContent === correct) btn.classList.add("correct");
-    if (btn.textContent === selected && !ok) btn.classList.add("incorrect");
-  });
-  elements.feedback.className =
-    "feedback show " + (ok ? "correct" : "incorrect");
-  elements.feedback.textContent = ok
-    ? "Correct. " + q.kanji + " means " + displayMeaning(q) + "."
-    : "Answer: " +
-      correct +
-      ". " +
-      q.kanji +
-      " (" +
-      q.kana +
-      ") means " +
-      displayMeaning(q) +
-      ".";
+  state.selectedAnswer = selected;
+
+  if (isCorrect) {
+    state.correct += 1;
+  } else {
+    recordMistake(question, selected);
+  }
+
+  if (isMockTest()) {
+    [...elements.options.children].forEach((button) => {
+      button.disabled = true;
+      if (button.textContent === selected) button.classList.add("selected");
+    });
+    elements.feedback.className = "feedback show correct";
+    elements.feedback.textContent = "Answer saved.";
+  } else {
+    [...elements.options.children].forEach((button) => {
+      button.disabled = true;
+      if (button.textContent === correct) button.classList.add("correct");
+      if (button.textContent === selected && !isCorrect)
+        button.classList.add("incorrect");
+    });
+    elements.feedback.className = `feedback show ${isCorrect ? "correct" : "incorrect"}`;
+    elements.feedback.textContent = isCorrect
+      ? `Correct. ${question.kanji} means ${displayMeaning(question)}.`
+      : `Answer: ${correct}. ${question.kanji} (${question.kana}) means ${displayMeaning(question)}.`;
+  }
+
   renderStats();
 }
-function recordMistake(w) {
-  state.mistakes.push(w);
+
+function recordMistake(word, selected = "") {
+  state.mistakes.push({ ...word, selected });
   const ids = new Set(mistakeIds());
-  ids.add(w.id);
+  ids.add(word.id);
   writeJson(storageKeys.mistakes, [...ids].slice(-200));
 }
+
 function revealAnswer() {
-  if (state.answered) return;
-  const q = state.questions[state.currentIndex];
+  if (state.answered || isMockTest()) return;
+  const question = state.questions[state.currentIndex];
+  const correct = correctAnswerFor(question);
   state.answered = true;
-  recordMistake(q);
-  const correct = answerFor(q);
-  [...elements.options.children].forEach((btn) => {
-    btn.disabled = true;
-    if (btn.textContent === correct) btn.classList.add("correct");
+  recordMistake(question, "Revealed");
+
+  [...elements.options.children].forEach((button) => {
+    button.disabled = true;
+    if (button.textContent === correct) button.classList.add("correct");
   });
   elements.feedback.className = "feedback show incorrect";
-  elements.feedback.textContent =
-    q.kanji + " (" + q.kana + ") - " + displayMeaning(q);
+  elements.feedback.textContent = `${question.kanji} (${question.kana}) - ${displayMeaning(question)}`;
   renderStats();
 }
+
 function nextQuestion() {
   if (!state.answered) {
     elements.feedback.className = "feedback show incorrect";
-    elements.feedback.textContent = "Choose an answer or reveal it first.";
+    elements.feedback.textContent = "Select an answer before continuing.";
     return;
   }
+
   if (state.currentIndex < state.questions.length - 1) {
-    state.currentIndex++;
+    state.currentIndex += 1;
     renderQuestion();
     renderStats();
-  } else showResults();
+  } else {
+    showResults();
+  }
 }
+
 function renderStats() {
   const answered = state.currentIndex + (state.answered ? 1 : 0);
   const accuracy = answered ? Math.round((state.correct / answered) * 100) : 0;
   elements.correctCount.textContent = state.correct;
-  elements.accuracy.textContent = accuracy + "%";
+  elements.accuracy.textContent = `${accuracy}%`;
   elements.answeredCount.textContent = answered;
   elements.remainingCount.textContent = Math.max(
     state.questions.length - answered,
     0,
   );
 }
+
 function showResults() {
   const score = Math.round((state.correct / state.questions.length) * 100);
   const best = Math.max(
@@ -255,108 +323,114 @@ function showResults() {
   elements.quizView.classList.add("hidden");
   elements.resultsView.classList.add("show");
   elements.progressFill.style.width = "100%";
-  elements.resultScore.textContent = score + "%";
-  elements.resultMessage.textContent =
-    score >= 90
-      ? "Excellent. Move to a larger set or reverse mode."
-      : score >= 70
-        ? "Good round. Review missed cards once before a new set."
-        : "Use a 10-question round and repeat your mistake list.";
-  elements.mistakesBtn.disabled = !state.lastMistakes.length;
-  elements.mistakesBtn.textContent = state.lastMistakes.length
-    ? "Practice " + state.lastMistakes.length + " mistakes"
-    : "No mistakes";
+  elements.resultScore.textContent = `${score}%`;
+  elements.resultMessage.textContent = resultMessage(score);
+  elements.mistakesBtn.disabled = state.lastMistakes.length === 0;
+  elements.mistakesBtn.textContent =
+    state.lastMistakes.length === 0
+      ? "No mistakes"
+      : `Review ${state.lastMistakes.length} mistakes`;
   renderReview();
   renderSavedProgress();
   renderWordBank();
 }
+
+function resultMessage(score) {
+  if (isMockTest()) {
+    if (score >= 80)
+      return "Mock test passed. Review any missed cards, then try another 50-question set.";
+    if (score >= 60)
+      return "Close. Repeat the mistake set and retake the mock test.";
+    return "Focus on 20-question practice first, then return to the mock test.";
+  }
+  if (score >= 90)
+    return "Excellent practice round. Move to mock test when ready.";
+  if (score >= 70) return "Good progress. Review the missed cards once.";
+  return "Use a shorter set and repeat the mistakes until they feel familiar.";
+}
+
 function renderReview() {
   elements.reviewList.replaceChildren();
-  (state.lastMistakes.length
+  const reviewItems = state.lastMistakes.length
     ? state.lastMistakes
     : [
         {
           kanji: "No mistakes",
           kana: "",
           english: "Clean round",
-          nepali: "Great work",
+          selected: "",
         },
-      ]
-  ).forEach((w) => {
+      ];
+
+  reviewItems.forEach((word) => {
     const row = document.createElement("div");
     row.className = "review-item";
-    row.innerHTML =
-      "<strong>" +
-      w.kanji +
-      (w.kana ? " (" + w.kana + ")" : "") +
-      "</strong><span>" +
-      displayMeaning(w) +
-      "</span>";
+    row.innerHTML = `
+      <strong>${word.kanji}${word.kana ? ` (${word.kana})` : ""}</strong>
+      <span>${displayMeaning(word)}${word.selected ? ` | Your answer: ${word.selected}` : ""}</span>
+    `;
     elements.reviewList.append(row);
   });
 }
+
 function toggleFavorite() {
-  const q = state.questions[state.currentIndex];
+  const question = state.questions[state.currentIndex];
   const set = new Set(favorites());
-  set.has(q.id) ? set.delete(q.id) : set.add(q.id);
+  set.has(question.id) ? set.delete(question.id) : set.add(question.id);
   writeJson(storageKeys.favorites, [...set]);
-  renderFavorite(q);
+  renderFavorite(question);
   renderWordBank();
 }
-function renderFavorite(w) {
-  const saved = favorites().includes(w.id);
+
+function renderFavorite(word) {
+  const saved = favorites().includes(word.id);
   elements.favoriteBtn.classList.toggle("active", saved);
   elements.favoriteBtn.textContent = saved ? "Saved" : "Save";
 }
+
 function updateStreak() {
   const today = new Date().toISOString().slice(0, 10);
   const last = localStorage.getItem(storageKeys.lastDate);
   let streak = Number(localStorage.getItem(storageKeys.streak) || 0);
   if (last !== today) {
-    const y = new Date();
-    y.setDate(y.getDate() - 1);
-    streak = last === y.toISOString().slice(0, 10) ? streak + 1 : 1;
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    streak = last === yesterday.toISOString().slice(0, 10) ? streak + 1 : 1;
     localStorage.setItem(storageKeys.streak, streak);
     localStorage.setItem(storageKeys.lastDate, today);
   }
 }
+
 function renderSavedProgress() {
   elements.totalWords.textContent = vocabulary.length;
-  elements.bestScore.textContent =
-    Number(localStorage.getItem(storageKeys.best) || 0) + "%";
+  elements.bestScore.textContent = `${Number(localStorage.getItem(storageKeys.best) || 0)}%`;
   elements.studyStreak.textContent = Number(
     localStorage.getItem(storageKeys.streak) || 0,
   );
 }
+
 function renderWordBank() {
   const term = elements.wordSearch.value.trim().toLowerCase();
-  const favs = new Set(favorites());
+  const savedWords = new Set(favorites());
   const rows = vocabulary
-    .filter((w) =>
-      (w.kanji + " " + w.kana + " " + w.english + " " + w.nepali)
-        .toLowerCase()
-        .includes(term),
+    .filter((word) =>
+      `${word.kanji} ${word.kana} ${word.english}`.toLowerCase().includes(term),
     )
-    .slice(0, 260);
+    .slice(0, 220);
+
   elements.wordList.replaceChildren();
-  rows.forEach((w) => {
+  rows.forEach((word) => {
     const row = document.createElement("div");
     row.className = "word-row";
-    row.innerHTML =
-      "<strong>" +
-      w.kanji +
-      "</strong><span>" +
-      w.kana +
-      "</span><span>" +
-      displayMeaning(w) +
-      '</span><button class="secondary" type="button" aria-label="Save ' +
-      w.kanji +
-      '">' +
-      (favs.has(w.id) ? "Saved" : "Save") +
-      "</button>";
+    row.innerHTML = `
+      <strong>${word.kanji}</strong>
+      <span>${word.kana}</span>
+      <span>${displayMeaning(word)}</span>
+      <button type="button" aria-label="Save ${word.kanji}">${savedWords.has(word.id) ? "Saved" : "Save"}</button>
+    `;
     row.querySelector("button").addEventListener("click", () => {
       const set = new Set(favorites());
-      set.has(w.id) ? set.delete(w.id) : set.add(w.id);
+      set.has(word.id) ? set.delete(word.id) : set.add(word.id);
       writeJson(storageKeys.favorites, [...set]);
       renderWordBank();
       if (state.questions[state.currentIndex])
@@ -365,18 +439,21 @@ function renderWordBank() {
     elements.wordList.append(row);
   });
 }
+
 function setupOffline() {
-  if ("serviceWorker" in navigator)
+  if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js").catch(() => {});
-  const set = () => {
+  }
+  const updateStatus = () => {
     elements.offlineStatus.textContent = navigator.onLine
       ? "Online - offline ready"
       : "Offline mode";
   };
-  window.addEventListener("online", set);
-  window.addEventListener("offline", set);
-  set();
+  window.addEventListener("online", updateStatus);
+  window.addEventListener("offline", updateStatus);
+  updateStatus();
 }
+
 elements.newQuizBtn.addEventListener("click", () => startQuiz());
 elements.shuffleBtn.addEventListener("click", () => startQuiz());
 elements.practiceAgainBtn.addEventListener("click", () => startQuiz());
@@ -386,10 +463,12 @@ elements.mistakesBtn.addEventListener("click", () =>
 elements.revealBtn.addEventListener("click", revealAnswer);
 elements.nextBtn.addEventListener("click", nextQuestion);
 elements.favoriteBtn.addEventListener("click", toggleFavorite);
+elements.testType.addEventListener("change", () => startQuiz());
 elements.quizMode.addEventListener("change", () => startQuiz());
 elements.questionCount.addEventListener("change", () => startQuiz());
 elements.focusMode.addEventListener("change", () => startQuiz());
 elements.wordSearch.addEventListener("input", renderWordBank);
+
 renderSavedProgress();
 renderWordBank();
 setupOffline();

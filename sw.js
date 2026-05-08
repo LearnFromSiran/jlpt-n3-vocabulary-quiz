@@ -1,4 +1,4 @@
-const CACHE = "jlpt-n3-pro-v1";
+const CACHE = "jlpt-n3-test-v2";
 const ASSETS = [
   "./",
   "./index.html",
