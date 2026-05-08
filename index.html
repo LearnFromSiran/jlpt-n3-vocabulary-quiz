@@ -1,1384 +1,169 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="A colorful JLPT N3 vocabulary quiz for Nepali-speaking Japanese learners with animated practice rounds and mistake review.">
-  <meta name="theme-color" content="#7c3aed">
-  <title>JLPT N3 Vocabulary Quiz</title>
-  <style>
-    :root {
-      color-scheme: light;
-      --ink: #172033;
-      --muted: #64748b;
-      --line: rgba(15, 23, 42, 0.12);
-      --surface: rgba(255, 255, 255, 0.9);
-      --surface-solid: #ffffff;
-      --lavender: #7c3aed;
-      --violet: #a855f7;
-      --cyan: #06b6d4;
-      --mint: #10b981;
-      --rose: #f43f5e;
-      --amber: #f59e0b;
-      --blue: #2563eb;
-      --success: #067647;
-      --success-soft: #dcfce7;
-      --danger: #b42318;
-      --danger-soft: #fee2e2;
-      --shadow: 0 28px 80px rgba(30, 41, 59, 0.22);
-      --soft-shadow: 0 16px 40px rgba(30, 41, 59, 0.12);
-    }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: "Inter", "Noto Sans", "Noto Sans Devanagari", "Noto Sans JP", "Segoe UI", sans-serif;
-      color: var(--ink);
-      background:
-        linear-gradient(135deg, rgba(124, 58, 237, 0.95), rgba(6, 182, 212, 0.75) 42%, rgba(245, 158, 11, 0.76)),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.16) 1px, transparent 1px),
-        linear-gradient(0deg, rgba(255, 255, 255, 0.13) 1px, transparent 1px);
-      background-size: auto, 72px 72px, 72px 72px;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background:
-        radial-gradient(circle at 15% 12%, rgba(255, 255, 255, 0.28), transparent 22%),
-        radial-gradient(circle at 83% 16%, rgba(255, 255, 255, 0.22), transparent 18%),
-        linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0));
-      opacity: 0.82;
-    }
-
-    button,
-    select {
-      font: inherit;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-    .app-shell {
-      position: relative;
-      display: grid;
-      grid-template-columns: 88px minmax(0, 1fr);
-      gap: 18px;
-      width: min(1280px, calc(100% - 28px));
-      margin: 0 auto;
-      padding: 18px 0 30px;
-      animation: pageEnter 520ms ease both;
-    }
-
-    .sidebar {
-      position: sticky;
-      top: 18px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 14px;
-      height: calc(100vh - 36px);
-      padding: 14px 10px;
-      border: 1px solid rgba(255, 255, 255, 0.38);
-      border-radius: 26px;
-      background: rgba(255, 255, 255, 0.22);
-      box-shadow: var(--soft-shadow);
-      backdrop-filter: blur(18px);
-    }
-
-    .brand-mark {
-      display: grid;
-      place-items: center;
-      width: 52px;
-      height: 52px;
-      border-radius: 18px;
-      background: #ffffff;
-      color: var(--lavender);
-      font-weight: 950;
-      letter-spacing: 0;
-      box-shadow: 0 12px 26px rgba(30, 41, 59, 0.18);
-    }
-
-    .side-pill {
-      display: grid;
-      place-items: center;
-      width: 52px;
-      min-height: 52px;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.2);
-      color: #fff;
-      font-size: 0.72rem;
-      font-weight: 850;
-      text-align: center;
-      transition: transform 180ms ease, background 180ms ease;
-    }
-
-    .side-pill.active,
-    .side-pill:hover {
-      transform: translateY(-2px);
-      background: rgba(255, 255, 255, 0.34);
-    }
-
-    .workspace {
-      min-width: 0;
-    }
-
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 16px;
-      padding: 14px 16px;
-      border: 1px solid rgba(255, 255, 255, 0.42);
-      border-radius: 26px;
-      background: rgba(255, 255, 255, 0.84);
-      box-shadow: var(--soft-shadow);
-      backdrop-filter: blur(18px);
-    }
-
-    .brand-title {
-      margin: 0;
-      font-size: 1.05rem;
-      line-height: 1.2;
-      font-weight: 900;
-    }
-
-    .brand-subtitle {
-      margin: 4px 0 0;
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-
-    .toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .select-field,
-    .search-field,
-    .ghost-button,
-    .primary-button {
-      min-height: 44px;
-      border-radius: 16px;
-      padding: 0 16px;
-      border: 1px solid var(--line);
-      background: var(--surface-solid);
-      color: var(--ink);
-      font-weight: 800;
-      transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
-    }
-
-    .ghost-button:hover,
-    .select-field:hover,
-    .search-field:hover,
-    .search-field:focus,
-    .primary-button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 24px rgba(30, 41, 59, 0.13);
-    }
-
-    .search-field {
-      width: min(100%, 260px);
-      outline: none;
-    }
-
-    .primary-button {
-      border-color: transparent;
-      background: linear-gradient(135deg, var(--lavender), var(--cyan));
-      color: #ffffff;
-    }
-
-    .canvas-board {
-      display: grid;
-      grid-template-columns: minmax(0, 0.94fr) minmax(360px, 1.06fr);
-      gap: 18px;
-      align-items: stretch;
-    }
-
-    .intro,
-    .quiz-panel,
-    .stats-grid,
-    .word-bank {
-      border: 1px solid rgba(255, 255, 255, 0.48);
-      border-radius: 28px;
-      background: var(--surface);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
-      overflow: hidden;
-    }
-
-    .intro {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      min-height: 548px;
-      padding: 30px;
-    }
-
-    .template-ribbon {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 22px;
-    }
-
-    .level-chip {
-      display: inline-flex;
-      align-items: center;
-      min-height: 34px;
-      padding: 0 12px;
-      border-radius: 999px;
-      background: #ffffff;
-      color: var(--lavender);
-      font-size: 0.8rem;
-      font-weight: 900;
-      box-shadow: 0 10px 22px rgba(30, 41, 59, 0.1);
-    }
-
-    h1 {
-      margin: 0;
-      max-width: 780px;
-      font-size: clamp(2.5rem, 6vw, 5.4rem);
-      line-height: 0.95;
-      letter-spacing: 0;
-    }
-
-    .gradient-text {
-      background: linear-gradient(135deg, var(--lavender), var(--blue), var(--cyan));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .intro-copy {
-      max-width: 680px;
-      margin: 18px 0 0;
-      color: #475569;
-      font-size: 1.03rem;
-      line-height: 1.7;
-    }
-
-    .study-strip {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-      margin-top: auto;
-      padding-top: 28px;
-    }
-
-    .study-item {
-      min-height: 118px;
-      padding: 16px;
-      border-radius: 22px;
-      color: #fff;
-      box-shadow: 0 18px 32px rgba(30, 41, 59, 0.16);
-      animation: riseIn 520ms ease both;
-    }
-
-    .study-item:nth-child(1) {
-      background: linear-gradient(145deg, var(--lavender), var(--violet));
-      animation-delay: 80ms;
-    }
-
-    .study-item:nth-child(2) {
-      background: linear-gradient(145deg, var(--cyan), var(--blue));
-      animation-delay: 150ms;
-    }
-
-    .study-item:nth-child(3) {
-      background: linear-gradient(145deg, var(--mint), var(--amber));
-      animation-delay: 220ms;
-    }
-
-    .study-label {
-      font-size: 0.78rem;
-      font-weight: 900;
-      opacity: 0.78;
-      text-transform: uppercase;
-    }
-
-    .study-value {
-      margin-top: 12px;
-      font-size: 1.4rem;
-      font-weight: 950;
-    }
-
-    .quick-actions {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-      margin-top: 22px;
-    }
-
-    .quick-card {
-      min-height: 96px;
-      padding: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.72);
-      border-radius: 22px;
-      background: rgba(255, 255, 255, 0.76);
-      box-shadow: 0 12px 26px rgba(30, 41, 59, 0.1);
-    }
-
-    .quick-label {
-      color: var(--muted);
-      font-size: 0.78rem;
-      font-weight: 950;
-      text-transform: uppercase;
-    }
-
-    .quick-value {
-      margin-top: 9px;
-      font-size: 1.45rem;
-      font-weight: 950;
-      color: var(--lavender);
-    }
-
-    .quiz-panel {
-      min-height: 548px;
-      background: rgba(255, 255, 255, 0.95);
-    }
-
-    .panel-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 20px 22px;
-      border-bottom: 1px solid var(--line);
-      background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(6, 182, 212, 0.1));
-    }
-
-    .panel-title {
-      margin: 0;
-      font-size: 1rem;
-      font-weight: 950;
-    }
-
-    .panel-subtitle {
-      margin: 5px 0 0;
-      color: var(--muted);
-      font-size: 0.86rem;
-      font-weight: 750;
-    }
-
-    .progress-text {
-      color: var(--muted);
-      font-weight: 900;
-      white-space: nowrap;
-    }
-
-    .progress-track {
-      height: 10px;
-      background: rgba(15, 23, 42, 0.08);
-      overflow: hidden;
-    }
-
-    .progress-fill {
-      width: 0%;
-      height: 100%;
-      border-radius: 999px;
-      background: linear-gradient(90deg, var(--rose), var(--amber), var(--cyan), var(--lavender));
-      background-size: 240% 100%;
-      transition: width 360ms cubic-bezier(0.2, 0.8, 0.2, 1);
-      animation: progressGlow 3.2s ease infinite;
-    }
-
-    .question-area {
-      padding: 22px;
-    }
-
-    .prompt-label {
-      margin: 0 0 12px;
-      color: var(--muted);
-      font-size: 0.8rem;
-      font-weight: 950;
-      text-transform: uppercase;
-    }
-
-    .word-display {
-      display: grid;
-      min-height: 206px;
-      place-items: center;
-      padding: 26px;
-      border-radius: 28px;
-      background:
-        linear-gradient(135deg, rgba(124, 58, 237, 0.94), rgba(6, 182, 212, 0.86)),
-        #6d28d9;
-      color: #ffffff;
-      text-align: center;
-      box-shadow: 0 22px 46px rgba(79, 70, 229, 0.28);
-      transform-origin: center;
-    }
-
-    .word-display.is-changing {
-      animation: cardSwap 420ms ease both;
-    }
-
-    .kanji {
-      font-family: "Noto Serif JP", "Yu Mincho", "Hiragino Mincho ProN", serif;
-      font-size: clamp(3.7rem, 9vw, 6.6rem);
-      line-height: 1;
-      font-weight: 950;
-    }
-
-    .kana {
-      margin-top: 10px;
-      font-size: 1.35rem;
-      font-weight: 900;
-    }
-
-    .romaji {
-      margin-top: 4px;
-      color: rgba(255, 255, 255, 0.78);
-      font-style: italic;
-      font-weight: 700;
-    }
-
-    .meaning-line {
-      margin: 14px 2px 0;
-      color: var(--muted);
-      font-size: 0.95rem;
-      line-height: 1.5;
-    }
-
-    .options {
-      display: grid;
-      gap: 10px;
-      margin-top: 18px;
-    }
-
-    .option {
-      width: 100%;
-      min-height: 56px;
-      padding: 13px 16px;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: #ffffff;
-      color: var(--ink);
-      text-align: left;
-      font-weight: 800;
-      box-shadow: 0 10px 22px rgba(30, 41, 59, 0.08);
-      opacity: 0;
-      animation: optionIn 360ms ease both;
-      animation-delay: var(--delay, 0ms);
-      transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
-    }
-
-    .option:hover:not(:disabled),
-    .option:focus-visible {
-      border-color: rgba(124, 58, 237, 0.48);
-      background: #f8f7ff;
-      box-shadow: 0 16px 28px rgba(124, 58, 237, 0.16);
-      transform: translateY(-2px) scale(1.01);
-      outline: none;
-    }
-
-    .option:disabled {
-      cursor: default;
-    }
-
-    .option.correct {
-      border-color: rgba(16, 185, 129, 0.58);
-      background: var(--success-soft);
-      color: var(--success);
-      animation: correctPulse 440ms ease both;
-    }
-
-    .option.incorrect {
-      border-color: rgba(244, 63, 94, 0.58);
-      background: var(--danger-soft);
-      color: var(--danger);
-      animation: wrongShake 360ms ease both;
-    }
-
-    .feedback {
-      display: none;
-      margin-top: 14px;
-      padding: 14px 15px;
-      border-radius: 18px;
-      line-height: 1.5;
-      font-weight: 800;
-    }
-
-    .feedback.show {
-      display: block;
-      animation: riseIn 260ms ease both;
-    }
-
-    .feedback.correct {
-      background: var(--success-soft);
-      color: var(--success);
-    }
-
-    .feedback.incorrect {
-      background: var(--danger-soft);
-      color: var(--danger);
-    }
-
-    .actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 18px;
-    }
-
-    .actions button {
-      flex: 1;
-    }
-
-    .dashboard {
-      display: grid;
-      grid-template-columns: 0.86fr 1.14fr;
-      gap: 18px;
-      align-items: start;
-      margin-top: 18px;
-    }
-
-    .stats-grid,
-    .word-bank {
-      background: rgba(255, 255, 255, 0.88);
-    }
-
-    .section-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 17px 20px;
-      border-bottom: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.6);
-    }
-
-    .section-head h2 {
-      margin: 0;
-      font-size: 1rem;
-      font-weight: 950;
-    }
-
-    .stats-list {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      padding: 14px;
-    }
-
-    .stat {
-      min-height: 112px;
-      padding: 18px;
-      border-radius: 22px;
-      background: #ffffff;
-      box-shadow: 0 10px 22px rgba(30, 41, 59, 0.08);
-      transition: transform 180ms ease;
-    }
-
-    .stat:hover {
-      transform: translateY(-2px);
-    }
-
-    .stat-label {
-      color: var(--muted);
-      font-size: 0.78rem;
-      font-weight: 950;
-      text-transform: uppercase;
-    }
-
-    .stat-value {
-      margin-top: 10px;
-      font-size: 2rem;
-      font-weight: 950;
-      color: var(--lavender);
-    }
-
-    .word-list {
-      display: grid;
-      max-height: 440px;
-      overflow: auto;
-      padding: 8px;
-    }
-
-    .word-row {
-      display: grid;
-      grid-template-columns: minmax(120px, 0.9fr) minmax(130px, 1fr) minmax(120px, 1fr);
-      gap: 12px;
-      padding: 13px 14px;
-      border-radius: 18px;
-      align-items: center;
-      transition: background 180ms ease, transform 180ms ease;
-    }
-
-    .word-row:hover {
-      background: rgba(124, 58, 237, 0.08);
-      transform: translateX(3px);
-    }
-
-    .word-main {
-      font-weight: 950;
-      font-size: 1.06rem;
-    }
-
-    .word-kana,
-    .word-meaning {
-      color: var(--muted);
-      line-height: 1.45;
-    }
-
-    .results {
-      display: none;
-      padding: 34px 24px;
-      text-align: center;
-    }
-
-    .results.show {
-      display: block;
-      animation: resultPop 500ms ease both;
-    }
-
-    .result-score {
-      margin: 10px 0;
-      font-size: clamp(3.4rem, 12vw, 6.8rem);
-      line-height: 1;
-      font-weight: 950;
-      background: linear-gradient(135deg, var(--lavender), var(--rose), var(--amber));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-    }
-
-    .result-message {
-      margin: 0 auto 20px;
-      max-width: 430px;
-      color: #475569;
-      line-height: 1.6;
-      font-weight: 700;
-    }
-
-    .review-list {
-      display: grid;
-      gap: 10px;
-      margin-top: 20px;
-      text-align: left;
-    }
-
-    .review-item {
-      padding: 13px;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: #ffffff;
-      animation: optionIn 300ms ease both;
-    }
-
-    .review-item strong {
-      display: block;
-      margin-bottom: 4px;
-    }
-
-    .empty-state {
-      padding: 18px;
-      color: var(--muted);
-      font-weight: 800;
-      text-align: center;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    @keyframes pageEnter {
-      from {
-        opacity: 0;
-        transform: translateY(16px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes riseIn {
-      from {
-        opacity: 0;
-        transform: translateY(12px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes optionIn {
-      from {
-        opacity: 0;
-        transform: translateY(12px) scale(0.98);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-
-    @keyframes cardSwap {
-      0% {
-        opacity: 0;
-        transform: translateY(14px) scale(0.98) rotate(-1deg);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0) scale(1) rotate(0);
-      }
-    }
-
-    @keyframes correctPulse {
-      0% {
-        transform: scale(1);
-      }
-      50% {
-        transform: scale(1.025);
-      }
-      100% {
-        transform: scale(1);
-      }
-    }
-
-    @keyframes wrongShake {
-      0%, 100% {
-        transform: translateX(0);
-      }
-      25% {
-        transform: translateX(-5px);
-      }
-      75% {
-        transform: translateX(5px);
-      }
-    }
-
-    @keyframes progressGlow {
-      0%, 100% {
-        background-position: 0% 50%;
-      }
-      50% {
-        background-position: 100% 50%;
-      }
-    }
-
-    @keyframes resultPop {
-      from {
-        opacity: 0;
-        transform: scale(0.96);
-      }
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        animation-duration: 1ms !important;
-        animation-iteration-count: 1 !important;
-        scroll-behavior: auto !important;
-        transition-duration: 1ms !important;
-      }
-    }
-
-    @media (max-width: 980px) {
-      .app-shell {
-        grid-template-columns: 1fr;
-      }
-
-      .sidebar {
-        position: static;
-        flex-direction: row;
-        justify-content: center;
-        height: auto;
-      }
-
-      .canvas-board,
-      .dashboard {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 640px) {
-      .app-shell {
-        width: min(100% - 20px, 1280px);
-        padding-top: 10px;
-      }
-
-      .sidebar {
-        display: none;
-      }
-
-      .topbar,
-      .panel-head,
-      .section-head {
-        align-items: stretch;
-        flex-direction: column;
-      }
-
-      .toolbar,
-      .actions {
-        display: grid;
-        grid-template-columns: 1fr;
-      }
-
-      .select-field,
-      .search-field,
-      .ghost-button,
-      .primary-button {
-        width: 100%;
-      }
-
-      .intro,
-      .quiz-panel,
-      .stats-grid,
-      .word-bank {
-        border-radius: 22px;
-      }
-
-      .intro {
-        min-height: auto;
-        padding: 22px;
-      }
-
-      .study-strip,
-      .quick-actions,
-      .stats-list {
-        grid-template-columns: 1fr;
-      }
-
-      .word-row {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
-</head>
-<body>
-  <main class="app-shell">
-    <aside class="sidebar" aria-label="Learning tools">
-      <div class="brand-mark" aria-hidden="true">N3</div>
-      <div class="side-pill active">Quiz</div>
-      <div class="side-pill">Kanji</div>
-      <div class="side-pill">Review</div>
-    </aside>
-
-    <div class="workspace">
-      <header class="topbar" aria-label="App header">
-        <div>
-          <p class="brand-title">JLPT N3 Vocabulary Quiz</p>
-          <p class="brand-subtitle">Canva-style study board for Nepali speakers</p>
-        </div>
-        <div class="toolbar">
-          <select class="select-field" id="quizMode" aria-label="Quiz mode">
-            <option value="meaning">Japanese to Nepali</option>
-            <option value="japanese">Nepali to Japanese</option>
-          </select>
-          <select class="select-field" id="questionCount" aria-label="Question count">
-            <option value="10">10 questions</option>
-            <option value="15">15 questions</option>
-            <option value="30">30 questions</option>
-          </select>
-          <button class="ghost-button" id="shuffleBtn" type="button">Shuffle Set</button>
-          <button class="primary-button" id="restartBtn" type="button">New Quiz</button>
-        </div>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta
+      name="description"
+      content="Offline-ready JLPT N3 vocabulary quiz with Japanese, kana, English, and Nepali-friendly study flows."
+    />
+    <meta name="theme-color" content="#0f766e" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>JLPT N3 Vocabulary Pro</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="hero">
+        <nav class="topbar" aria-label="App controls">
+          <div class="brand-lockup">
+            <div class="brand-mark" aria-hidden="true">N3</div>
+            <div>
+              <p class="eyebrow">Offline study app</p>
+              <h1>JLPT N3 Vocabulary Pro</h1>
+            </div>
+          </div>
+          <div class="status-pill" id="offlineStatus">Offline ready</div>
+        </nav>
+        <section class="study-focus" aria-label="Current quiz">
+          <div class="study-copy">
+            <p class="eyebrow">Built for daily review</p>
+            <h2>
+              Practice words, remember mistakes, and keep moving on mobile.
+            </h2>
+            <p>
+              The app keeps your score, streak, saved words, and missed cards on
+              this device. Install it from the browser menu and study even
+              without internet.
+            </p>
+          </div>
+          <div class="hero-stats" aria-label="Study summary">
+            <div><span id="totalWords">430</span><small>Words</small></div>
+            <div><span id="bestScore">0%</span><small>Best</small></div>
+            <div><span id="studyStreak">0</span><small>Day streak</small></div>
+          </div>
+        </section>
       </header>
-
-      <section class="canvas-board" aria-label="Quiz introduction and question">
-        <div class="intro">
-          <div class="template-ribbon">
-            <span class="level-chip">N3 Practice</span>
-            <span class="level-chip">Kanji</span>
-            <span class="level-chip">Nepali Meaning</span>
-          </div>
-          <h1><span class="gradient-text">Design your</span> daily vocabulary practice.</h1>
-          <p class="intro-copy">
-            Study high-frequency N3 words with a bright creative workspace, instant answer
-            feedback, animated progress, and a mistake list you can repeat after each round.
-          </p>
-          <div class="study-strip" aria-label="Study features">
-            <div class="study-item">
-              <div class="study-label">Word Bank</div>
-              <div class="study-value">30 curated</div>
-            </div>
-            <div class="study-item">
-              <div class="study-label">Quiz Mode</div>
-              <div class="study-value">Multiple choice</div>
-            </div>
-            <div class="study-item">
-              <div class="study-label">Review Flow</div>
-              <div class="study-value">Mistake list</div>
-            </div>
-          </div>
-          <div class="quick-actions" aria-label="Personal progress">
-            <div class="quick-card">
-              <div class="quick-label">Best Score</div>
-              <div class="quick-value" id="bestScore">0%</div>
-            </div>
-            <div class="quick-card">
-              <div class="quick-label">Study Streak</div>
-              <div class="quick-value" id="studyStreak">0 days</div>
-            </div>
-          </div>
-        </div>
-
-        <section class="quiz-panel" aria-live="polite">
+      <section class="control-panel" aria-label="Quiz setup">
+        <label
+          >Mode<select id="quizMode">
+            <option value="meaning">Japanese to meaning</option>
+            <option value="japanese">Meaning to Japanese</option>
+            <option value="kana">Kanji to reading</option>
+          </select></label
+        >
+        <label
+          >Set<select id="questionCount">
+            <option value="10">10 questions</option>
+            <option value="20">20 questions</option>
+            <option value="30">30 questions</option>
+            <option value="50">50 questions</option>
+          </select></label
+        >
+        <label
+          >Focus<select id="focusMode">
+            <option value="all">All vocabulary</option>
+            <option value="favorites">Saved words</option>
+            <option value="mistakes">Mistake review</option>
+          </select></label
+        >
+        <button class="secondary" id="shuffleBtn" type="button">Shuffle</button
+        ><button class="primary" id="newQuizBtn" type="button">Start</button>
+      </section>
+      <section class="main-grid">
+        <article class="quiz-card" aria-live="polite">
           <div id="quizView">
-            <div class="panel-head">
+            <div class="quiz-head">
               <div>
-                <p class="panel-title" id="panelTitle">Choose the correct Nepali meaning</p>
-                <p class="panel-subtitle" id="panelSubtitle">Read the Japanese word, then choose the Nepali answer.</p>
+                <p class="eyebrow" id="panelTitle">Choose the meaning</p>
+                <p id="panelSubtitle">
+                  Read the Japanese word and pick the best answer.
+                </p>
               </div>
-              <div class="progress-text"><span id="currentNumber">1</span>/<span id="totalNumber">10</span></div>
+              <strong
+                ><span id="currentNumber">1</span>/<span id="totalNumber"
+                  >10</span
+                ></strong
+              >
             </div>
-            <div class="progress-track" aria-hidden="true">
-              <div class="progress-fill" id="progressFill"></div>
+            <div class="progress-track"><div id="progressFill"></div></div>
+            <div class="word-card" id="wordCard">
+              <button
+                class="save-button"
+                id="favoriteBtn"
+                type="button"
+                aria-label="Save this word"
+              >
+                Save
+              </button>
+              <div class="word-main" id="kanji">N3</div>
+              <div class="word-reading" id="kana">Vocabulary</div>
+              <div class="word-meta" id="romaji">reading</div>
             </div>
-            <div class="question-area">
-              <p class="prompt-label">Current word</p>
-              <div class="word-display" id="wordCard">
-                <div>
-                  <div class="kanji" id="kanji">確認</div>
-                  <div class="kana" id="kana">かくにん</div>
-                  <div class="romaji" id="romaji">kakunin</div>
-                </div>
-              </div>
-              <p class="meaning-line" id="supportText">English meaning: confirmation, check</p>
-              <div class="options" id="options"></div>
-              <div class="feedback" id="feedback"></div>
-              <div class="actions">
-                <button class="ghost-button" id="revealBtn" type="button">Reveal Answer</button>
-                <button class="primary-button" id="nextBtn" type="button">Next</button>
-              </div>
+            <p class="hint-line" id="supportText">confirmation, check</p>
+            <div class="options" id="options"></div>
+            <div class="feedback" id="feedback"></div>
+            <div class="actions">
+              <button class="secondary" id="revealBtn" type="button">
+                Reveal</button
+              ><button class="primary" id="nextBtn" type="button">Next</button>
             </div>
           </div>
-
           <div class="results" id="resultsView">
-            <p class="prompt-label">Round complete</p>
+            <p class="eyebrow">Round complete</p>
             <div class="result-score" id="resultScore">0%</div>
-            <p class="result-message" id="resultMessage"></p>
+            <p id="resultMessage"></p>
             <div class="actions">
-              <button class="ghost-button" id="mistakesBtn" type="button">Practice Mistakes</button>
-              <button class="primary-button" id="practiceAgainBtn" type="button">Practice Again</button>
+              <button class="secondary" id="mistakesBtn" type="button">
+                Practice mistakes</button
+              ><button class="primary" id="practiceAgainBtn" type="button">
+                New round
+              </button>
             </div>
             <div class="review-list" id="reviewList"></div>
           </div>
-        </section>
+        </article>
+        <aside class="side-panel">
+          <section class="stats-card" aria-label="Session stats">
+            <h3>Session</h3>
+            <div class="stats-list">
+              <div><span id="correctCount">0</span><small>Correct</small></div>
+              <div><span id="accuracy">0%</span><small>Accuracy</small></div>
+              <div>
+                <span id="answeredCount">0</span><small>Answered</small>
+              </div>
+              <div><span id="remainingCount">10</span><small>Left</small></div>
+            </div>
+          </section>
+          <section class="tips-card">
+            <h3>Smart review</h3>
+            <p>
+              Save hard words with the star, then choose Saved Words in Focus.
+              Missed words are stored automatically for fast review.
+            </p>
+          </section>
+        </aside>
       </section>
-
-      <section class="dashboard" aria-label="Study dashboard">
-        <div class="stats-grid">
-          <div class="section-head">
-            <h2>Session Progress</h2>
-          </div>
-          <div class="stats-list">
-            <div class="stat">
-              <div class="stat-label">Correct</div>
-              <div class="stat-value" id="correctCount">0</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Accuracy</div>
-              <div class="stat-value" id="accuracy">0%</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Answered</div>
-              <div class="stat-value" id="answeredCount">0</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Remaining</div>
-              <div class="stat-value" id="remainingCount">10</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="word-bank">
-          <div class="section-head">
-            <h2>Vocabulary Bank</h2>
-            <input class="search-field" id="wordSearch" type="search" placeholder="Search kanji, kana, Nepali..." aria-label="Search vocabulary">
-          </div>
-          <div class="word-list" id="wordList"></div>
-        </div>
-      </section>
-    </div>
-  </main>
-
-  <script>
-    const vocabulary = [
-      { kanji: "確認", kana: "かくにん", romaji: "kakunin", english: "confirmation, check", nepali: "पुष्टि गर्नु" },
-      { kanji: "経験", kana: "けいけん", romaji: "keiken", english: "experience", nepali: "अनुभव" },
-      { kanji: "重要", kana: "じゅうよう", romaji: "juuyou", english: "important", nepali: "महत्वपूर्ण" },
-      { kanji: "社会", kana: "しゃかい", romaji: "shakai", english: "society", nepali: "समाज" },
-      { kanji: "対象", kana: "たいしょう", romaji: "taishou", english: "target, object", nepali: "लक्ष्य" },
-      { kanji: "必要", kana: "ひつよう", romaji: "hitsuyou", english: "necessary", nepali: "आवश्यक" },
-      { kanji: "準備", kana: "じゅんび", romaji: "junbi", english: "preparation", nepali: "तयारी" },
-      { kanji: "予定", kana: "よてい", romaji: "yotei", english: "plan, schedule", nepali: "योजना" },
-      { kanji: "原因", kana: "げんいん", romaji: "genin", english: "cause, reason", nepali: "कारण" },
-      { kanji: "結果", kana: "けっか", romaji: "kekka", english: "result", nepali: "नतिजा" },
-      { kanji: "場合", kana: "ばあい", romaji: "baai", english: "case, situation", nepali: "अवस्था" },
-      { kanji: "関係", kana: "かんけい", romaji: "kankei", english: "relationship", nepali: "सम्बन्ध" },
-      { kanji: "連絡", kana: "れんらく", romaji: "renraku", english: "contact", nepali: "सम्पर्क" },
-      { kanji: "方法", kana: "ほうほう", romaji: "houhou", english: "method", nepali: "तरिका" },
-      { kanji: "習慣", kana: "しゅうかん", romaji: "shuukan", english: "habit, custom", nepali: "बानी" },
-      { kanji: "文化", kana: "ぶんか", romaji: "bunka", english: "culture", nepali: "संस्कृति" },
-      { kanji: "生活", kana: "せいかつ", romaji: "seikatsu", english: "daily life", nepali: "जीवनशैली" },
-      { kanji: "説明", kana: "せつめい", romaji: "setsumei", english: "explanation", nepali: "व्याख्या" },
-      { kanji: "利用", kana: "りよう", romaji: "riyou", english: "use, utilization", nepali: "प्रयोग" },
-      { kanji: "参加", kana: "さんか", romaji: "sanka", english: "participation", nepali: "सहभागिता" },
-      { kanji: "失敗", kana: "しっぱい", romaji: "shippai", english: "failure, mistake", nepali: "असफलता" },
-      { kanji: "成功", kana: "せいこう", romaji: "seikou", english: "success", nepali: "सफलता" },
-      { kanji: "相談", kana: "そうだん", romaji: "soudan", english: "consultation", nepali: "सल्लाह" },
-      { kanji: "安全", kana: "あんぜん", romaji: "anzen", english: "safety", nepali: "सुरक्षा" },
-      { kanji: "危険", kana: "きけん", romaji: "kiken", english: "danger", nepali: "खतरा" },
-      { kanji: "努力", kana: "どりょく", romaji: "doryoku", english: "effort", nepali: "मेहनत" },
-      { kanji: "記憶", kana: "きおく", romaji: "kioku", english: "memory", nepali: "स्मरण" },
-      { kanji: "環境", kana: "かんきょう", romaji: "kankyou", english: "environment", nepali: "वातावरण" },
-      { kanji: "情報", kana: "じょうほう", romaji: "jouhou", english: "information", nepali: "जानकारी" },
-      { kanji: "技術", kana: "ぎじゅつ", romaji: "gijutsu", english: "technology, skill", nepali: "प्रविधि" }
-    ];
-
-    const state = {
-      questions: [],
-      currentIndex: 0,
-      correct: 0,
-      answered: false,
-      selectedAnswer: "",
-      mistakes: [],
-      lastMistakes: []
-    };
-
-    const elements = {
-      quizMode: document.getElementById("quizMode"),
-      questionCount: document.getElementById("questionCount"),
-      shuffleBtn: document.getElementById("shuffleBtn"),
-      restartBtn: document.getElementById("restartBtn"),
-      practiceAgainBtn: document.getElementById("practiceAgainBtn"),
-      mistakesBtn: document.getElementById("mistakesBtn"),
-      revealBtn: document.getElementById("revealBtn"),
-      nextBtn: document.getElementById("nextBtn"),
-      quizView: document.getElementById("quizView"),
-      resultsView: document.getElementById("resultsView"),
-      currentNumber: document.getElementById("currentNumber"),
-      totalNumber: document.getElementById("totalNumber"),
-      panelTitle: document.getElementById("panelTitle"),
-      panelSubtitle: document.getElementById("panelSubtitle"),
-      progressFill: document.getElementById("progressFill"),
-      wordCard: document.getElementById("wordCard"),
-      kanji: document.getElementById("kanji"),
-      kana: document.getElementById("kana"),
-      romaji: document.getElementById("romaji"),
-      supportText: document.getElementById("supportText"),
-      options: document.getElementById("options"),
-      feedback: document.getElementById("feedback"),
-      correctCount: document.getElementById("correctCount"),
-      accuracy: document.getElementById("accuracy"),
-      answeredCount: document.getElementById("answeredCount"),
-      remainingCount: document.getElementById("remainingCount"),
-      resultScore: document.getElementById("resultScore"),
-      resultMessage: document.getElementById("resultMessage"),
-      reviewList: document.getElementById("reviewList"),
-      bestScore: document.getElementById("bestScore"),
-      studyStreak: document.getElementById("studyStreak"),
-      wordSearch: document.getElementById("wordSearch"),
-      wordList: document.getElementById("wordList")
-    };
-
-    const storageKeys = {
-      bestScore: "jlptN3BestScore",
-      streak: "jlptN3StudyStreak",
-      lastStudyDate: "jlptN3LastStudyDate"
-    };
-
-    function shuffle(items) {
-      const copy = [...items];
-      for (let index = copy.length - 1; index > 0; index -= 1) {
-        const swapIndex = Math.floor(Math.random() * (index + 1));
-        [copy[index], copy[swapIndex]] = [copy[swapIndex], copy[index]];
-      }
-      return copy;
-    }
-
-    function getQuestionLimit() {
-      return Math.min(Number(elements.questionCount.value), vocabulary.length);
-    }
-
-    function buildOptions(question) {
-      const mode = elements.quizMode.value;
-      const answerKey = mode === "meaning" ? "nepali" : "kanji";
-      const wrongAnswers = shuffle(vocabulary.filter((item) => item[answerKey] !== question[answerKey]))
-        .slice(0, 3)
-        .map((item) => item[answerKey]);
-      return shuffle([question[answerKey], ...wrongAnswers]);
-    }
-
-    function animateWordCard() {
-      elements.wordCard.classList.remove("is-changing");
-      void elements.wordCard.offsetWidth;
-      elements.wordCard.classList.add("is-changing");
-    }
-
-    function getTodayKey() {
-      return new Date().toISOString().slice(0, 10);
-    }
-
-    function updateStudyStreak() {
-      const today = getTodayKey();
-      const lastDate = localStorage.getItem(storageKeys.lastStudyDate);
-      let streak = Number(localStorage.getItem(storageKeys.streak) || "0");
-
-      if (lastDate !== today) {
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayKey = yesterday.toISOString().slice(0, 10);
-        streak = lastDate === yesterdayKey ? streak + 1 : 1;
-        localStorage.setItem(storageKeys.streak, String(streak));
-        localStorage.setItem(storageKeys.lastStudyDate, today);
-      }
-
-      renderSavedProgress();
-    }
-
-    function renderSavedProgress() {
-      const bestScore = Number(localStorage.getItem(storageKeys.bestScore) || "0");
-      const streak = Number(localStorage.getItem(storageKeys.streak) || "0");
-      elements.bestScore.textContent = `${bestScore}%`;
-      elements.studyStreak.textContent = `${streak} ${streak === 1 ? "day" : "days"}`;
-    }
-
-    function startQuiz(customQuestions = null) {
-      state.questions = customQuestions ? shuffle(customQuestions) : shuffle(vocabulary).slice(0, getQuestionLimit());
-      state.currentIndex = 0;
-      state.correct = 0;
-      state.answered = false;
-      state.selectedAnswer = "";
-      state.mistakes = [];
-      elements.quizView.classList.remove("hidden");
-      elements.resultsView.classList.remove("show");
-      renderQuestion();
-      renderStats();
-    }
-
-    function renderQuestion() {
-      const question = state.questions[state.currentIndex];
-      const mode = elements.quizMode.value;
-      state.answered = false;
-      state.selectedAnswer = "";
-
-      elements.currentNumber.textContent = String(state.currentIndex + 1);
-      elements.totalNumber.textContent = String(state.questions.length);
-      elements.progressFill.style.width = `${(state.currentIndex / state.questions.length) * 100}%`;
-      elements.panelTitle.textContent = mode === "meaning"
-        ? "Choose the correct Nepali meaning"
-        : "Choose the correct Japanese word";
-      elements.panelSubtitle.textContent = mode === "meaning"
-        ? "Read the Japanese word, then choose the Nepali answer."
-        : "Read the Nepali meaning, then choose the Japanese answer.";
-      elements.kanji.textContent = mode === "meaning" ? question.kanji : question.nepali;
-      elements.kana.textContent = mode === "meaning" ? question.kana : question.english;
-      elements.romaji.textContent = mode === "meaning" ? question.romaji : "Choose the matching Japanese";
-      elements.supportText.textContent = mode === "meaning"
-        ? `English meaning: ${question.english}`
-        : `Hint: ${question.kana} | ${question.romaji}`;
-      elements.feedback.className = "feedback";
-      elements.feedback.textContent = "";
-      elements.nextBtn.textContent = state.currentIndex === state.questions.length - 1 ? "Finish" : "Next";
-      animateWordCard();
-
-      elements.options.replaceChildren();
-      buildOptions(question).forEach((option, index) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "option";
-        button.style.setProperty("--delay", `${index * 70}ms`);
-        button.textContent = option;
-        button.addEventListener("click", () => answerQuestion(option));
-        elements.options.append(button);
-      });
-    }
-
-    function answerQuestion(selected) {
-      if (state.answered) return;
-
-      const question = state.questions[state.currentIndex];
-      const mode = elements.quizMode.value;
-      const correctAnswer = mode === "meaning" ? question.nepali : question.kanji;
-      const isCorrect = selected === correctAnswer;
-      state.answered = true;
-      state.selectedAnswer = selected;
-
-      if (isCorrect) {
-        state.correct += 1;
-      } else {
-        state.mistakes.push({ ...question, selected });
-      }
-
-      updateOptionStyles(correctAnswer, selected);
-      elements.feedback.className = `feedback show ${isCorrect ? "correct" : "incorrect"}`;
-      elements.feedback.textContent = isCorrect
-        ? `Correct. ${question.kanji} means ${question.nepali}.`
-        : `Not quite. The answer is ${correctAnswer}. ${question.kanji} means ${question.nepali}.`;
-
-      renderStats();
-    }
-
-    function revealAnswer() {
-      if (state.answered) return;
-      const question = state.questions[state.currentIndex];
-      const mode = elements.quizMode.value;
-      const correctAnswer = mode === "meaning" ? question.nepali : question.kanji;
-      state.answered = true;
-      state.selectedAnswer = "";
-      state.mistakes.push({ ...question, selected: "Revealed" });
-      updateOptionStyles(correctAnswer, "");
-      elements.feedback.className = "feedback show incorrect";
-      elements.feedback.textContent = `${question.kanji} means ${question.nepali}.`;
-      renderStats();
-    }
-
-    function updateOptionStyles(correctAnswer, selectedAnswer) {
-      [...elements.options.children].forEach((button) => {
-        button.disabled = true;
-        if (button.textContent === correctAnswer) button.classList.add("correct");
-        if (button.textContent === selectedAnswer && selectedAnswer !== correctAnswer) {
-          button.classList.add("incorrect");
-        }
-      });
-    }
-
-    function goNext() {
-      if (!state.answered) {
-        elements.feedback.className = "feedback show incorrect";
-        elements.feedback.textContent = "Choose an answer or reveal the answer before moving on.";
-        return;
-      }
-
-      if (state.currentIndex < state.questions.length - 1) {
-        state.currentIndex += 1;
-        renderQuestion();
-        renderStats();
-      } else {
-        showResults();
-      }
-    }
-
-    function renderStats() {
-      const answered = state.currentIndex + (state.answered ? 1 : 0);
-      const accuracy = answered === 0 ? 0 : Math.round((state.correct / answered) * 100);
-      elements.correctCount.textContent = String(state.correct);
-      elements.accuracy.textContent = `${accuracy}%`;
-      elements.answeredCount.textContent = String(answered);
-      elements.remainingCount.textContent = String(Math.max(state.questions.length - answered, 0));
-    }
-
-    function showResults() {
-      const score = Math.round((state.correct / state.questions.length) * 100);
-      const bestScore = Number(localStorage.getItem(storageKeys.bestScore) || "0");
-      if (score > bestScore) {
-        localStorage.setItem(storageKeys.bestScore, String(score));
-      }
-      state.lastMistakes = [...state.mistakes];
-      updateStudyStreak();
-      elements.progressFill.style.width = "100%";
-      elements.quizView.classList.add("hidden");
-      elements.resultsView.classList.add("show");
-      elements.resultScore.textContent = `${score}%`;
-      elements.resultMessage.textContent = getResultMessage(score);
-      elements.mistakesBtn.disabled = state.lastMistakes.length === 0;
-      elements.mistakesBtn.textContent = state.lastMistakes.length === 0 ? "No Mistakes" : `Practice ${state.lastMistakes.length} Mistakes`;
-      renderReview();
-    }
-
-    function getResultMessage(score) {
-      if (score >= 90) return "Excellent work. You are handling this N3 set with strong confidence.";
-      if (score >= 70) return "Good progress. Review the missed words once, then try a shuffled round.";
-      if (score >= 50) return "You are building the base. Repeat the review list and focus on kanji recognition.";
-      return "Start with a shorter 10-question round and repeat it until the meanings feel familiar.";
-    }
-
-    function renderReview() {
-      elements.reviewList.replaceChildren();
-      if (state.mistakes.length === 0) {
-        const perfect = document.createElement("div");
-        perfect.className = "review-item";
-        perfect.innerHTML = "<strong>No mistakes this round.</strong><span>Try a 30-question set next.</span>";
-        elements.reviewList.append(perfect);
-        return;
-      }
-
-      state.mistakes.forEach((item, index) => {
-        const row = document.createElement("div");
-        row.className = "review-item";
-        row.style.setProperty("--delay", `${index * 45}ms`);
-        row.innerHTML = `
-          <strong>${item.kanji} (${item.kana}) - ${item.romaji}</strong>
-          <span>${item.nepali} | ${item.english}</span>
-        `;
-        elements.reviewList.append(row);
-      });
-    }
-
-    function practiceMistakes() {
-      if (state.lastMistakes.length === 0) return;
-      startQuiz(state.lastMistakes);
-    }
-
-    function renderWordBank() {
-      const searchTerm = elements.wordSearch.value.trim().toLowerCase();
-      const filteredWords = vocabulary.filter((item) => {
-        const text = `${item.kanji} ${item.kana} ${item.romaji} ${item.english} ${item.nepali}`.toLowerCase();
-        return text.includes(searchTerm);
-      });
-
-      elements.wordList.replaceChildren();
-      if (filteredWords.length === 0) {
-        const empty = document.createElement("div");
-        empty.className = "empty-state";
-        empty.textContent = "No matching words found.";
-        elements.wordList.append(empty);
-        return;
-      }
-
-      filteredWords.forEach((item) => {
-        const row = document.createElement("div");
-        row.className = "word-row";
-        row.innerHTML = `
+      <section class="word-bank" aria-label="Vocabulary bank">
+        <div class="section-head">
           <div>
-            <div class="word-main">${item.kanji}</div>
-            <div class="word-kana">${item.romaji}</div>
+            <p class="eyebrow">Word bank</p>
+            <h2>Search all bundled vocabulary</h2>
           </div>
-          <div class="word-kana">${item.kana}</div>
-          <div class="word-meaning">${item.nepali}<br>${item.english}</div>
-        `;
-        elements.wordList.append(row);
-      });
-    }
-
-    elements.nextBtn.addEventListener("click", goNext);
-    elements.revealBtn.addEventListener("click", revealAnswer);
-    elements.restartBtn.addEventListener("click", () => startQuiz());
-    elements.shuffleBtn.addEventListener("click", () => startQuiz());
-    elements.practiceAgainBtn.addEventListener("click", () => startQuiz());
-    elements.mistakesBtn.addEventListener("click", practiceMistakes);
-    elements.questionCount.addEventListener("change", () => startQuiz());
-    elements.quizMode.addEventListener("change", () => startQuiz());
-    elements.wordSearch.addEventListener("input", renderWordBank);
-
-    renderSavedProgress();
-    renderWordBank();
-    startQuiz();
-  </script>
-</body>
+          <input
+            id="wordSearch"
+            type="search"
+            placeholder="Search kanji, kana, meaning..."
+            aria-label="Search vocabulary"
+          />
+        </div>
+        <div class="word-list" id="wordList"></div>
+      </section>
+    </main>
+    <script src="vocabulary.js"></script>
+    <script src="app.js"></script>
+  </body>
 </html>

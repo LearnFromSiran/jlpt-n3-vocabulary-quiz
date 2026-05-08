@@ -1,20 +1,19 @@
-# JLPT N3 Vocabulary Quiz
+# JLPT N3 Vocabulary Pro
 
-A responsive JLPT N3 vocabulary practice app for Nepali-speaking Japanese learners. The app is a static HTML/CSS/JavaScript project, so it is easy to host on GitHub Pages, Netlify, Vercel, Firebase Hosting, or any static web server.
+A professional, mobile-friendly JLPT N3 vocabulary quiz that works offline after the first visit. It is built as a static PWA, so it can run on GitHub Pages without a backend or build step.
 
 ## Features
 
-- 30 curated JLPT N3 vocabulary words
-- Kanji, kana, romaji, English meaning, and Nepali translation support
-- 10, 15, or 30 question practice rounds
-- Two quiz directions: Japanese to Nepali and Nepali to Japanese
-- Shuffled multiple-choice answers with instant feedback
-- Reveal-answer option for study mode
-- Mistakes-only practice after each round
+- 430 bundled JLPT N3 vocabulary entries
+- Offline-first service worker and installable web app manifest
+- Mobile-first quiz layout with large tap targets
+- Japanese to meaning, meaning to Japanese, and kanji to kana quiz modes
+- 10, 20, 30, or 50 question rounds
+- Saved best score and daily streak in the browser
+- Starred words for personal review
+- Mistake review mode saved locally
 - Searchable vocabulary bank
-- Session progress, accuracy, and remaining question counters
-- Saved best score and daily study streak in the browser
-- Canva-style responsive interface with animations
+- No internet required after the app is cached
 
 ## Live Demo
 
@@ -42,47 +41,33 @@ Open:
 http://localhost:8080
 ```
 
-You can also open `index.html` directly in a browser because the app has no build step.
+## Project Structure
+
+```text
+jlpt-n3-vocabulary-quiz/
+|-- index.html
+|-- styles.css
+|-- app.js
+|-- vocabulary.js
+|-- manifest.webmanifest
+|-- sw.js
+|-- package.json
+|-- README.md
+`-- .github/workflows/deploy.yml
+```
 
 ## Deployment
 
 This repository includes a GitHub Actions workflow for GitHub Pages.
 
 1. Push changes to the `main` branch.
-2. In GitHub, open repository `Settings` > `Pages`.
+2. In GitHub, open `Settings` > `Pages`.
 3. Set the source to `GitHub Actions`.
 4. The workflow deploys the static files automatically.
 
-For other hosts, upload the repository files or connect the repository as a static site. No build command is required.
+## Vocabulary Notes
 
-## Project Structure
-
-```text
-jlpt-n3-vocabulary-quiz/
-├── index.html
-├── package.json
-├── README.md
-├── LICENSE
-└── .github/
-    └── workflows/
-        └── deploy.yml
-```
-
-## Customizing Vocabulary
-
-Vocabulary lives in the `vocabulary` array inside `index.html`. Each item uses this shape:
-
-```javascript
-{
-  kanji: "確認",
-  kana: "かくにん",
-  romaji: "kakunin",
-  english: "confirmation, check",
-  nepali: "पुष्टि गर्नु"
-}
-```
-
-Add more items to increase the question bank. The quiz automatically creates answer choices from the full vocabulary list.
+The bundled word bank is stored in `vocabulary.js` so the quiz can run offline. The initial N3 word data was adapted from public JLPT study listings and kept local for fast mobile review.
 
 ## License
 
