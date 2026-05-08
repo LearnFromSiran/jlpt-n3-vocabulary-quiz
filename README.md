@@ -7,10 +7,11 @@ A clean, mobile-friendly JLPT N3 vocabulary practice and mock test app. It is a 
 - 430 bundled JLPT N3 vocabulary entries
 - Practice mode with instant feedback and reveal answer
 - Mock test mode with 50 exam-style questions
-- Japanese to meaning, meaning to Japanese, and kanji to kana question types
+- Japanese-to-meaning question flow
 - Saved words and mistake review stored in the browser
 - Best score and daily streak tracking
 - Searchable vocabulary bank
+- Vocabulary bank pagination with 12 words per page
 - Offline support after the first visit
 
 ## Live Demo

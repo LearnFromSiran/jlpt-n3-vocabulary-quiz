@@ -169,7 +169,7 @@ h2 {
   top: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(4, minmax(132px, 1fr)) auto auto;
+  grid-template-columns: repeat(3, minmax(132px, 1fr)) auto auto;
   gap: 10px;
   align-items: end;
   padding: 12px;
@@ -496,23 +496,53 @@ button:focus-visible {
   border-bottom: 1px solid var(--line);
 }
 
+.word-bank-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel-soft);
+}
+
+.word-bank-tools span {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 760;
+}
+
+.pager-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.pager-actions .button {
+  min-height: 38px;
+  padding: 0 12px;
+}
+
+.pager-actions .button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+  transform: none;
+}
+
 #wordSearch {
   max-width: 360px;
 }
 
 .word-list {
   display: grid;
-  max-height: 420px;
-  overflow: auto;
+  min-height: 0;
   padding: 8px;
 }
 
 .word-row {
   display: grid;
-  grid-template-columns: minmax(100px, 0.75fr) minmax(120px, 0.7fr) minmax(
-      220px,
-      1.6fr
-    ) auto;
+  grid-template-columns:
+    minmax(100px, 0.75fr) minmax(120px, 0.7fr) minmax(220px, 1.6fr)
+    auto;
   gap: 12px;
   align-items: center;
   border-radius: 8px;
@@ -570,6 +600,7 @@ button:focus-visible {
 
   .app-header,
   .word-bank-header,
+  .word-bank-tools,
   .panel-header {
     align-items: stretch;
     flex-direction: column;
@@ -614,6 +645,11 @@ button:focus-visible {
 
   #wordSearch {
     max-width: none;
+  }
+
+  .pager-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
   }
 
   .word-row {

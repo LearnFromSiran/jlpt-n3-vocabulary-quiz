@@ -55,14 +55,6 @@
           </select>
         </label>
         <label>
-          Question type
-          <select id="quizMode">
-            <option value="meaning">Japanese to meaning</option>
-            <option value="japanese">Meaning to Japanese</option>
-            <option value="kana">Kanji to reading</option>
-          </select>
-        </label>
-        <label>
           Questions
           <select id="questionCount">
             <option value="10">10 questions</option>
@@ -169,7 +161,7 @@
         <div class="word-bank-header">
           <div>
             <p class="kicker">Vocabulary bank</p>
-            <h2>Search words</h2>
+            <h2>Browse words</h2>
           </div>
           <input
             id="wordSearch"
@@ -177,6 +169,17 @@
             placeholder="Kanji, kana, or meaning"
             aria-label="Search vocabulary"
           />
+        </div>
+        <div class="word-bank-tools">
+          <span id="wordPageInfo">Page 1 of 1</span>
+          <div class="pager-actions">
+            <button class="button secondary" id="prevWordPage" type="button">
+              Previous
+            </button>
+            <button class="button secondary" id="nextWordPage" type="button">
+              Next
+            </button>
+          </div>
         </div>
         <div class="word-list" id="wordList"></div>
       </section>

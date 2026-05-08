@@ -6,6 +6,7 @@ const state = {
   mistakes: [],
   lastMistakes: [],
   selectedAnswer: "",
+  wordPage: 1,
 };
 
 const storageKeys = {
@@ -24,7 +25,6 @@ const elements = [
   "studyStreak",
   "modeLabel",
   "testType",
-  "quizMode",
   "questionCount",
   "focusMode",
   "shuffleBtn",
@@ -56,6 +56,9 @@ const elements = [
   "reviewList",
   "wordSearch",
   "wordList",
+  "wordPageInfo",
+  "prevWordPage",
+  "nextWordPage",
 ].reduce((acc, id) => {
   acc[id] = $(id);
   return acc;
@@ -110,31 +113,17 @@ function displayMeaning(word) {
 }
 
 function correctAnswerFor(word) {
-  const mode = elements.quizMode.value;
-  if (mode === "meaning") return displayMeaning(word);
-  if (mode === "kana") return word.kana;
-  return word.kanji;
+  return displayMeaning(word);
 }
 
 function promptFor(word) {
-  const mode = elements.quizMode.value;
-  if (mode === "meaning" || mode === "kana") {
-    return {
-      main: word.kanji,
-      kana: word.kana,
-      meta: mode === "kana" ? "Choose the reading" : "Choose the meaning",
-      hint: isMockTest()
-        ? "Mock test: answer before moving on."
-        : `Reading: ${word.kana}`,
-    };
-  }
   return {
-    main: displayMeaning(word),
-    kana: "Choose the Japanese word",
-    meta: "Meaning to Japanese",
+    main: word.kanji,
+    kana: word.kana,
+    meta: "Choose the meaning",
     hint: isMockTest()
-      ? "Mock test: no hints after selection."
-      : "Select the matching Japanese word.",
+      ? "Mock test: answer before moving on."
+      : `Reading: ${word.kana}`,
   };
 }
 
@@ -175,14 +164,9 @@ function renderQuestion() {
   state.answered = false;
   state.selectedAnswer = "";
 
-  const mode = elements.quizMode.value;
   elements.panelTitle.textContent = isMockTest()
     ? "Mock test question"
-    : mode === "meaning"
-      ? "Choose the meaning"
-      : mode === "kana"
-        ? "Choose the reading"
-        : "Choose the Japanese word";
+    : "Choose the meaning";
   elements.panelSubtitle.textContent = isMockTest()
     ? "Select one answer. Corrections are shown after the test."
     : "Study mode gives instant feedback and answer reveal.";
@@ -412,14 +396,25 @@ function renderSavedProgress() {
 function renderWordBank() {
   const term = elements.wordSearch.value.trim().toLowerCase();
   const savedWords = new Set(favorites());
-  const rows = vocabulary
-    .filter((word) =>
-      `${word.kanji} ${word.kana} ${word.english}`.toLowerCase().includes(term),
-    )
-    .slice(0, 220);
+  const rows = vocabulary.filter((word) =>
+    `${word.kanji} ${word.kana} ${word.english}`.toLowerCase().includes(term),
+  );
+  const pageSize = 12;
+  const totalPages = Math.max(1, Math.ceil(rows.length / pageSize));
+  state.wordPage = Math.min(Math.max(state.wordPage, 1), totalPages);
+  const pageRows = rows.slice(
+    (state.wordPage - 1) * pageSize,
+    state.wordPage * pageSize,
+  );
 
   elements.wordList.replaceChildren();
-  rows.forEach((word) => {
+  elements.wordPageInfo.textContent = rows.length
+    ? `Page ${state.wordPage} of ${totalPages} · ${rows.length} words`
+    : "No words found";
+  elements.prevWordPage.disabled = state.wordPage <= 1;
+  elements.nextWordPage.disabled = state.wordPage >= totalPages;
+
+  pageRows.forEach((word) => {
     const row = document.createElement("div");
     row.className = "word-row";
     row.innerHTML = `
@@ -464,10 +459,20 @@ elements.revealBtn.addEventListener("click", revealAnswer);
 elements.nextBtn.addEventListener("click", nextQuestion);
 elements.favoriteBtn.addEventListener("click", toggleFavorite);
 elements.testType.addEventListener("change", () => startQuiz());
-elements.quizMode.addEventListener("change", () => startQuiz());
 elements.questionCount.addEventListener("change", () => startQuiz());
 elements.focusMode.addEventListener("change", () => startQuiz());
-elements.wordSearch.addEventListener("input", renderWordBank);
+elements.wordSearch.addEventListener("input", () => {
+  state.wordPage = 1;
+  renderWordBank();
+});
+elements.prevWordPage.addEventListener("click", () => {
+  state.wordPage -= 1;
+  renderWordBank();
+});
+elements.nextWordPage.addEventListener("click", () => {
+  state.wordPage += 1;
+  renderWordBank();
+});
 
 renderSavedProgress();
 renderWordBank();
